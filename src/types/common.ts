@@ -1,7 +1,7 @@
 /**
- * Standard 9-point preset alignment names matching Flutter Alignment constants.
+ * Internal 9-point preset alignment names matching Flutter `Alignment` constants.
  */
-export type SmartPresetAlignment =
+export type AlignmentPresetKey =
   | 'center'
   | 'topLeft'
   | 'topCenter'
@@ -13,43 +13,68 @@ export type SmartPresetAlignment =
   | 'bottomRight';
 
 /**
- * Numeric coordinate alignment in [-1, 1] space (where (0, 0) is center).
+ * Alignment model mirroring Flutter's `Alignment` class (`Alignment.center`,
+ * `Alignment.centerLeft`, `new Alignment(x, y)`, `Alignment.custom(x, y)`).
+ *
+ * Normalized coordinates `(x, y)` map `(-1, -1)` to top-left, `(0, 0)` to
+ * center, and `(1, 1)` to bottom-right.
  */
-export interface SmartCoordinateAlignment {
+export class Alignment {
   readonly x: number;
   readonly y: number;
+
+  constructor(x: number, y: number) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      throw new TypeError(
+        `Alignment coordinates (x, y) must be finite numbers; received (${x}, ${y}).`,
+      );
+    }
+    this.x = x;
+    this.y = y;
+    Object.freeze(this);
+  }
+
+  static readonly topLeft = new Alignment(-1, -1);
+  static readonly topCenter = new Alignment(0, -1);
+  static readonly topRight = new Alignment(1, -1);
+  static readonly centerLeft = new Alignment(-1, 0);
+  static readonly center = new Alignment(0, 0);
+  static readonly centerRight = new Alignment(1, 0);
+  static readonly bottomLeft = new Alignment(-1, 1);
+  static readonly bottomCenter = new Alignment(0, 1);
+  static readonly bottomRight = new Alignment(1, 1);
+
+  /** Creates a coordinate-based Alignment (`new Alignment(x, y)`). */
+  static custom(x: number, y: number): Alignment {
+    return new Alignment(x, y);
+  }
+
+  equals(other: unknown): boolean {
+    return (
+      other instanceof Alignment &&
+      other.x === this.x &&
+      other.y === this.y
+    );
+  }
+
+  toString(): string {
+    const preset = matchAlignmentPreset(this.x, this.y);
+    return preset ? `Alignment.${preset}` : `Alignment(${this.x}, ${this.y})`;
+  }
 }
 
 /**
  * Alignment accepted by all SmartDialog APIs.
  */
-export type SmartAlignment = SmartPresetAlignment | SmartCoordinateAlignment;
-
-/**
- * Flutter-compatible Alignment helper constants and custom factory.
- */
-export const Alignment = {
-  topLeft: 'topLeft' as const,
-  topCenter: 'topCenter' as const,
-  topRight: 'topRight' as const,
-  centerLeft: 'centerLeft' as const,
-  center: 'center' as const,
-  centerRight: 'centerRight' as const,
-  bottomLeft: 'bottomLeft' as const,
-  bottomCenter: 'bottomCenter' as const,
-  bottomRight: 'bottomRight' as const,
-  custom(x: number, y: number): SmartCoordinateAlignment {
-    return { x, y };
-  },
-} as const;
+export type SmartAlignment = Alignment;
 
 export interface ResolvedAlignment {
   x: number;
   y: number;
-  preset: SmartPresetAlignment | null;
+  preset: AlignmentPresetKey | null;
 }
 
-const PRESET_TO_COORDS: Record<SmartPresetAlignment, { x: number; y: number }> = {
+const PRESET_TO_COORDS: Record<AlignmentPresetKey, { x: number; y: number }> = {
   topLeft: { x: -1, y: -1 },
   topCenter: { x: 0, y: -1 },
   topRight: { x: 1, y: -1 },
@@ -61,27 +86,43 @@ const PRESET_TO_COORDS: Record<SmartPresetAlignment, { x: number; y: number }> =
   bottomRight: { x: 1, y: 1 },
 };
 
-export function resolveAlignment(alignment: SmartAlignment): ResolvedAlignment {
-  if (typeof alignment === 'string') {
-    const coords = PRESET_TO_COORDS[alignment];
-    return { x: coords.x, y: coords.y, preset: alignment };
-  }
-
-  let matched: SmartPresetAlignment | null = null;
+function matchAlignmentPreset(x: number, y: number): AlignmentPresetKey | null {
   for (const [key, coords] of Object.entries(PRESET_TO_COORDS) as [
-    SmartPresetAlignment,
+    AlignmentPresetKey,
     { x: number; y: number },
   ][]) {
-    if (coords.x === alignment.x && coords.y === alignment.y) {
-      matched = key;
-      break;
+    if (coords.x === x && coords.y === y) {
+      return key;
     }
   }
-
-  return { x: alignment.x, y: alignment.y, preset: matched };
+  return null;
 }
 
-export function isCenterAlignment(alignment: SmartAlignment): boolean {
+/**
+ * Runtime guard enforcing an {@link Alignment} class instance.
+ */
+export function assertAlignment(
+  value: unknown,
+  name = 'alignment',
+): Alignment {
+  if (!(value instanceof Alignment)) {
+    throw new TypeError(
+      `Invalid ${name}: expected an Alignment instance (e.g. Alignment.center, new Alignment(x, y), or Alignment.custom(x, y)). Bare strings and plain objects are not allowed.`,
+    );
+  }
+  return value;
+}
+
+export function resolveAlignment(alignment: Alignment): ResolvedAlignment {
+  const validated = assertAlignment(alignment);
+  return {
+    x: validated.x,
+    y: validated.y,
+    preset: matchAlignmentPreset(validated.x, validated.y),
+  };
+}
+
+export function isCenterAlignment(alignment: Alignment): boolean {
   const resolved = resolveAlignment(alignment);
   return resolved.x === 0 && resolved.y === 0;
 }

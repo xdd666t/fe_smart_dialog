@@ -1,4 +1,4 @@
-import { SmartBackType, SmartStatus } from '../config/enums';
+import { CloseType, SmartBackType, SmartStatus } from '../config/enums';
 import type { DialogProxy } from './dialog-proxy';
 import { RouteRecord } from './route-record';
 
@@ -119,7 +119,7 @@ export class MonitorPopRoute {
       if (loadingInfo.backType === SmartBackType.normal) {
         void proxy.dismiss({
           status: SmartStatus.loading,
-          closeType: 'back',
+          closeType: CloseType.back,
         });
         return true;
       }
@@ -140,7 +140,7 @@ export class MonitorPopRoute {
         if (item.backType === SmartBackType.normal) {
           void proxy.dismiss({
             status: SmartStatus.notify,
-            closeType: 'back',
+            closeType: CloseType.back,
             tag: item.tag,
           });
           return true;
@@ -161,7 +161,7 @@ export class MonitorPopRoute {
       if (lastDialog.backType === SmartBackType.normal) {
         void proxy.dismiss({
           status: SmartStatus.dialog,
-          closeType: 'back',
+          closeType: CloseType.back,
         });
         return true;
       }

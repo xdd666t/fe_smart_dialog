@@ -5,6 +5,7 @@ import type {
   SmartAwaitOverType,
   SmartBackType,
   SmartDuration,
+  SmartHighlightShape,
   SmartInitType,
   SmartMaskTriggerType,
   SmartNonAnimationType,
@@ -14,8 +15,10 @@ import type {
   SmartSize,
   SmartStatus,
   SmartAllDialogType,
+  SmartTheme,
   SmartToastType,
 } from '..';
+import { assertAlignment } from './common';
 import type { SmartDialogController } from '../core/smart-dialog-controller';
 
 /**
@@ -122,7 +125,10 @@ export class AttachAdjustParam<TContent = SmartContent> {
     alignment?: SmartAlignment;
   } = {}) {
     this.builder = options.builder;
-    this.alignment = options.alignment;
+    this.alignment =
+      options.alignment !== undefined
+        ? assertAlignment(options.alignment, 'AttachAdjustParam.alignment')
+        : undefined;
   }
 }
 
@@ -143,7 +149,7 @@ export interface HighlightRegion {
   width: number;
   height: number;
   borderRadius?: number | string;
-  shape?: 'rect' | 'circle';
+  shape?: SmartHighlightShape;
 }
 
 export type HighlightBuilder = (
@@ -202,8 +208,8 @@ export interface SmartInitOptions<TContent = SmartContent> {
   container?: HTMLElement | string;
   /** Base z-index for the 5 overlay layers (default: 9999) */
   zIndexBase?: number;
-  /** Theme preference for built-in default widgets (default: 'auto') */
-  theme?: 'auto' | 'light' | 'dark';
+  /** Theme preference for built-in default widgets (default: SmartTheme.auto) */
+  theme?: SmartTheme;
   /** Auto-inject default scoped CSS into document.head (default: true) */
   injectStyles?: boolean;
   /** Listen to popstate/hashchange/history changes for bindPage & back handling (default: true) */

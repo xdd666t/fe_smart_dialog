@@ -86,7 +86,6 @@ const VuePlaygroundInner = defineComponent({
         .show<string>({
           tag: 'vue-pg-dialog',
           controller,
-          useAnimation: false,
           builder: ({ dismiss }) =>
             h(VueContextModal, {
               label: `Version-${version}`,
@@ -103,7 +102,6 @@ const VuePlaygroundInner = defineComponent({
       void dialog.showAttach({
         targetElement: anchorRef,
         alignment: Alignment.bottomCenter,
-        useAnimation: false,
         builder: () =>
           h(
             'div',

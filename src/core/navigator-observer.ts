@@ -1,4 +1,4 @@
-import { SmartAllDialogType, SmartStatus } from '../config/enums';
+import { CloseType, SmartAllDialogType, SmartStatus } from '../config/enums';
 import type { DialogInfo } from './dialog-info';
 import type { DialogProxy } from './dialog-proxy';
 import { getBrowserRouteKey, RouteRecord } from './route-record';
@@ -186,7 +186,7 @@ export class SmartNavigatorObserver {
     if (proxy.config.loading.isExist) {
       void proxy.dismiss({
         status: SmartStatus.loading,
-        closeType: 'route',
+        closeType: CloseType.route,
       });
     }
 
@@ -201,7 +201,7 @@ export class SmartNavigatorObserver {
       if (!target) continue;
       void proxy.dismiss({
         status: SmartStatus.dialog,
-        closeType: 'route',
+        closeType: CloseType.route,
         tag: target.tag,
       });
     }

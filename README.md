@@ -2,6 +2,9 @@
 
 An elegant, zero-dependency frontend dialog solution inspired by [`flutter_smart_dialog`](https://github.com/xdd666t/flutter_smart_dialog) — delivering **Custom**, **Attach**, **Notify**, **Loading**, and **Toast** overlays with full stack/queue management, SVG spotlight cutouts, SPA route & DOM lifecycle binding, native `<dialog>` top-layer support, and first-class adapters for **Vanilla TS/JS**, **React 18/19**, and **Vue 3**.
 
+- Interactive Showcase (GitHub Pages): https://xdd666t.github.io/fe_smart_dialog/
+- GitHub Repository & Releases: https://github.com/xdd666t/fe_smart_dialog/releases
+
 ## Features
 
 - **Zero Runtime Dependencies**: Core TypeScript/DOM engine compiles to ESM, CJS, and UMD/IIFE with zero runtime deps. React and Vue 3 adapters are optional subpath entrypoints.
@@ -14,8 +17,8 @@ An elegant, zero-dependency frontend dialog solution inspired by [`flutter_smart
   - `backType` (`normal` / `block` / `ignore`) & `onBack` for `Escape` and optional browser back interception (`enableHistoryBack`).
 - **Attach Popovers & SVG Spotlight Guides**:
   - Anchor to any DOM element, React ref, Vue ref, CSS selector, getter, or coordinates (`targetBuilder`).
-  - 9 alignments (`topLeft` .. `bottomRight` & custom `{ x, y }`), `SmartAttachAlignmentType` (`inside` / `center` / `outside`), edge-aware `adjustBuilder`, scroll & `ResizeObserver` tracking.
-  - Built-in SVG `fill-rule="evenodd"` spotlight cutout via `highlightBuilder` (`rect` or `circle`) and `maskIgnoreArea`.
+  - 9 preset alignments (`Alignment.topLeft` .. `Alignment.bottomRight`) & custom coordinates (`new Alignment(x, y)` / `Alignment.custom(x, y)`), `SmartAttachAlignmentType` (`inside` / `center` / `outside`), edge-aware `adjustBuilder`, scroll & `ResizeObserver` tracking.
+  - Built-in SVG `fill-rule="evenodd"` spotlight cutout via `highlightBuilder` (`SmartHighlightShape.rect` or `SmartHighlightShape.circle`) and `maskIgnoreArea`.
 - **Toast, Loading & Semantic Notify**:
   - 4 Toast modes (`normal`, `last`, `onlyRefresh`, `multi`) + `VisualViewport` soft-keyboard avoidance.
   - Singleton Loading with `leastLoadingTime` minimum display protection.
@@ -47,7 +50,14 @@ Subpath entrypoints:
 No setup boilerplate is required — just call `SmartDialog` directly:
 
 ```ts
-import { Alignment, NotifyType, SmartDialog, SmartToastType, html } from 'fe-smart-dialog';
+import {
+  Alignment,
+  NotifyType,
+  SmartDialog,
+  SmartStatus,
+  SmartToastType,
+  html,
+} from 'fe-smart-dialog';
 
 // Toast
 await SmartDialog.showToast('Saved successfully', {
@@ -57,7 +67,7 @@ await SmartDialog.showToast('Saved successfully', {
 // Loading
 void SmartDialog.showLoading({ msg: 'Uploading...' });
 await doWork();
-await SmartDialog.dismiss({ status: 'loading' });
+await SmartDialog.dismiss({ status: SmartStatus.loading });
 
 // Semantic Notify
 await SmartDialog.showNotify({
@@ -88,6 +98,7 @@ Wrap your app in `<SmartDialogProvider>` so dialogs render through React Portals
 import {
   Alignment,
   SmartDialogProvider,
+  SmartTheme,
   useBindWidget,
   useSmartDialog,
 } from 'fe-smart-dialog/react';
@@ -131,7 +142,7 @@ function Demo() {
 
 export function App() {
   return (
-    <SmartDialogProvider theme="auto">
+    <SmartDialogProvider theme={SmartTheme.auto}>
       <Demo />
     </SmartDialogProvider>
   );
@@ -147,6 +158,7 @@ import { createApp, h } from 'vue';
 import {
   SmartDialogPlugin,
   SmartDialogProvider,
+  SmartTheme,
   useSmartDialog,
 } from 'fe-smart-dialog/vue';
 
@@ -154,7 +166,7 @@ const app = createApp({
   render: () => h(SmartDialogProvider, null, { default: () => h(AppContent) }),
 });
 
-app.use(SmartDialogPlugin, { theme: 'auto' });
+app.use(SmartDialogPlugin, { theme: SmartTheme.auto });
 app.mount('#app');
 ```
 
@@ -181,10 +193,10 @@ void dialog.show({
 
 - `SmartDialog.init(options?)`:
   - `toastBuilder`, `loadingBuilder`, `notifyStyle` (`SmartNotifyStyle`), `styleBuilder`
-  - `initType`: subset of `['custom', 'attach', 'notify', 'loading', 'toast']`
+  - `initType`: subset of `SmartInitType` (`SmartInitType.custom`, `attach`, `notify`, `loading`, `toast`)
   - `container`: custom mount DOM element or CSS selector (defaults to `document.body`)
   - `zIndexBase`: base z-index for the 5 layers (default `9999`)
-  - `theme`: `'auto' | 'light' | 'dark'`
+  - `theme`: `SmartTheme` (`SmartTheme.auto`, `SmartTheme.light`, `SmartTheme.dark`)
   - `injectStyles`: `boolean` (default `true`; set `false` when importing `fe-smart-dialog/style.css` yourself)
   - `autoTrackHistory`: `boolean` (default `true`)
   - `enableHistoryBack`: `boolean` (default `false`; intercepts browser back button while dialog is open)
@@ -207,8 +219,9 @@ void dialog.show({
 
 ### Flutter SmartDialog Migration Notes
 
-- All core class, config, enum, and parameter names match `flutter_smart_dialog` (`SmartStatus`, `SmartToastType`, `SmartAnimationType`, `SmartAttachAlignmentType`, `SmartAwaitOverType`, `SmartMaskTriggerType`, `SmartNonAnimationType`, `SmartBackType`, `NotifyType`, `Alignment`, `Duration`, `Offset`, `Rect`, `Size`).
-- Web-native conveniences also accept raw milliseconds (`displayTime: 2000`), string preset alignments (`alignment: 'bottomCenter'`), `targetElement` / `bindElement` aliases, and CSS variables (`--fsd-*`).
+- All core class, config, enum, and parameter names strictly match `flutter_smart_dialog` (`SmartStatus`, `SmartAllDialogType`, `SmartToastType`, `SmartAnimationType`, `SmartAttachAlignmentType`, `SmartAwaitOverType`, `SmartMaskTriggerType`, `SmartNonAnimationType`, `SmartInitType`, `SmartBackType`, `NotifyType`, `SmartHighlightShape`, `SmartTheme`, `Alignment`, `Duration`, `Offset`, `Rect`, `Size`).
+- Enum and `Alignment` options follow strict Flutter semantics (`Alignment.bottomCenter`, `new Alignment(0.5, -0.5)`, `Alignment.custom(0.5, -0.5)`, `SmartStatus.loading`, `SmartTheme.dark`, `SmartHighlightShape.circle`); bare strings and plain coordinate objects are rejected at both compile time and runtime.
+- Web-native conveniences include raw milliseconds (`displayTime: 2000`), `targetElement` / `bindElement` aliases, and CSS variables (`--fsd-*`).
 - When `useSystem: true` is set, dialogs use `<dialog>.showModal()` (cannot be combined with `tag`, `keepSingle`, or `permanent`, matching Flutter semantics).
 
 ---

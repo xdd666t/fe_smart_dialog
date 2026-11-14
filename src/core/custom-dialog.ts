@@ -2,8 +2,11 @@ import {
   CloseType,
   DialogType,
   SmartBackType,
+  SmartInitType,
   SmartNonAnimationType,
+  SmartStatus,
 } from '../config/enums';
+import { validateRuntimeDialogOptions } from '../config/validation';
 import { resolveDurationMs } from '../types/common';
 import type {
   SmartShowAttachOptions,
@@ -24,6 +27,7 @@ export class CustomDialog {
     proxy: DialogProxy,
     options: SmartShowCustomOptions,
   ): Promise<T | undefined> {
+    validateRuntimeDialogOptions('SmartDialog.show', options);
     if (options.useSystem) {
       if (
         options.tag !== undefined ||
@@ -53,7 +57,7 @@ export class CustomDialog {
         : resolveDurationMs(options.displayTime);
 
     const { dialogInfo, scope, isReuse } = this.prepareDialogInfo(proxy, {
-      type: 'custom',
+      type: DialogType.custom,
       tag: options.tag,
       keepSingle,
       permanent,
@@ -113,7 +117,7 @@ export class CustomDialog {
           return;
         }
         void this.dismiss(proxy, {
-          closeType: 'mask',
+          closeType: CloseType.mask,
           tag: dialogInfo.tag,
         });
       },
@@ -127,6 +131,7 @@ export class CustomDialog {
     proxy: DialogProxy,
     options: SmartShowAttachOptions,
   ): Promise<T | undefined> {
+    validateRuntimeDialogOptions('SmartDialog.showAttach', options);
     const targetContext = options.targetContext ?? options.targetElement;
     if (targetContext === undefined && options.targetBuilder === undefined) {
       throw new Error(
@@ -162,7 +167,7 @@ export class CustomDialog {
         : resolveDurationMs(options.displayTime);
 
     const { dialogInfo, scope } = this.prepareDialogInfo(proxy, {
-      type: 'attach',
+      type: DialogType.attach,
       tag: options.tag,
       keepSingle,
       permanent,
@@ -227,7 +232,7 @@ export class CustomDialog {
           return;
         }
         void this.dismiss(proxy, {
-          closeType: 'mask',
+          closeType: CloseType.mask,
           tag: dialogInfo.tag,
         });
       },
@@ -240,7 +245,7 @@ export class CustomDialog {
   private static prepareDialogInfo(
     proxy: DialogProxy,
     params: {
-      type: 'custom' | 'attach';
+      type: DialogType.custom | DialogType.attach;
       tag?: string;
       keepSingle: boolean;
       permanent: boolean;
@@ -268,7 +273,11 @@ export class CustomDialog {
             controller: params.controller,
             tag: existing.tag,
             dismiss: (res) =>
-              proxy.dismiss({ status: 'dialog', tag: existing.tag, result: res }),
+              proxy.dismiss({
+                status: SmartStatus.dialog,
+                tag: existing.tag,
+                result: res,
+              }),
           },
         });
         return { dialogInfo: existing, scope, isReuse: true };
@@ -279,7 +288,11 @@ export class CustomDialog {
       ? params.tag ?? SmartTag.keepSingle
       : params.tag ?? `fsd-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-    const dialog: MainDialogHandle = proxy.createMainDialog(params.type);
+    const layer =
+      params.type === DialogType.attach
+        ? SmartInitType.attach
+        : SmartInitType.custom;
+    const dialog: MainDialogHandle = proxy.createMainDialog(layer);
     const dialogInfo: DialogInfo = {
       dialog,
       type: params.type,
@@ -312,7 +325,11 @@ export class CustomDialog {
         controller: params.controller,
         tag: assignedTag,
         dismiss: (res) =>
-          proxy.dismiss({ status: 'dialog', tag: assignedTag, result: res }),
+          proxy.dismiss({
+            status: SmartStatus.dialog,
+            tag: assignedTag,
+            result: res,
+          }),
       },
     });
 
@@ -362,11 +379,15 @@ export class CustomDialog {
       closeType?: CloseType;
     } = {},
   ): Promise<void> {
-    const type = options.type ?? 'dialog';
+    const type = options.type ?? DialogType.dialog;
     const force = options.force ?? false;
-    const closeType = options.closeType ?? 'normal';
+    const closeType = options.closeType ?? CloseType.normal;
 
-    if (type === 'dialog' || type === 'custom' || type === 'attach') {
+    if (
+      type === DialogType.dialog ||
+      type === DialogType.custom ||
+      type === DialogType.attach
+    ) {
       await this.closeSingle(proxy, {
         type,
         tag: options.tag,
@@ -377,10 +398,11 @@ export class CustomDialog {
       return;
     }
 
-    let allType: 'dialog' | 'custom' | 'attach' | null = null;
-    if (type === 'allDialog') allType = 'dialog';
-    if (type === 'allCustom') allType = 'custom';
-    if (type === 'allAttach') allType = 'attach';
+    let allType: DialogType.dialog | DialogType.custom | DialogType.attach | null =
+      null;
+    if (type === DialogType.allDialog) allType = DialogType.dialog;
+    if (type === DialogType.allCustom) allType = DialogType.custom;
+    if (type === DialogType.allAttach) allType = DialogType.attach;
     if (!allType) return;
 
     await this.closeAll(proxy, {
@@ -395,7 +417,7 @@ export class CustomDialog {
   private static async closeAll<T>(
     proxy: DialogProxy,
     options: {
-      type: 'dialog' | 'custom' | 'attach';
+      type: DialogType.dialog | DialogType.custom | DialogType.attach;
       tag?: string;
       result?: T;
       force: boolean;
@@ -416,7 +438,7 @@ export class CustomDialog {
   private static async closeSingle<T>(
     proxy: DialogProxy,
     options: {
-      type: 'dialog' | 'custom' | 'attach';
+      type: DialogType.dialog | DialogType.custom | DialogType.attach;
       tag?: string;
       result?: T;
       force: boolean;
@@ -465,16 +487,16 @@ export class CustomDialog {
 
   private static syncDialogExist(proxy: DialogProxy): void {
     proxy.config.custom.isExist = proxy.dialogQueue.some(
-      (item) => item.type === 'custom',
+      (item) => item.type === DialogType.custom,
     );
     proxy.config.attach.isExist = proxy.dialogQueue.some(
-      (item) => item.type === 'attach',
+      (item) => item.type === DialogType.attach,
     );
   }
 
   private static getDialogsForCloseAll(
     proxy: DialogProxy,
-    type: 'dialog' | 'custom' | 'attach',
+    type: DialogType.dialog | DialogType.custom | DialogType.attach,
     tag: string | undefined,
     force: boolean,
   ): DialogInfo[] {
@@ -504,14 +526,14 @@ export class CustomDialog {
         if (
           !force &&
           info.dialog.visible &&
-          (type === 'dialog' || info.type === type)
+          (type === DialogType.dialog || info.type === type)
         ) {
           break;
         }
         continue;
       }
       if (!info.dialog.visible && !info.useSystem) continue;
-      if (type === 'dialog' || info.type === type) {
+      if (type === DialogType.dialog || info.type === type) {
         matches.push(info);
       }
     }
@@ -544,11 +566,11 @@ export class CustomDialog {
       if (lastPermanent) return lastPermanent;
     }
 
-    const type = options.type ?? 'dialog';
+    const type = options.type ?? DialogType.dialog;
     let target: DialogInfo | null = null;
     for (const item of queue) {
       if (!item.dialog.visible && !item.useSystem) continue;
-      if (type === 'dialog' || item.type === type) {
+      if (type === DialogType.dialog || item.type === type) {
         target = item;
       }
     }

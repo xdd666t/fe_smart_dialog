@@ -4,7 +4,12 @@ import {
   SmartMaskTriggerType,
   SmartNonAnimationType,
   SmartToastType,
+  assertEnumValue,
 } from './enums';
+import {
+  bindCommonValidatedConfigFields,
+  bindValidatedProperty,
+} from './validation';
 import type { SmartAlignment, SmartDuration } from '../types/common';
 import { Alignment, resolveDurationMs } from '../types/common';
 import type { SmartConfigCommonOptions, SmartContent } from '../types/params';
@@ -24,9 +29,9 @@ export interface SmartConfigToastOptions<TContent = SmartContent>
  * Global configuration for `SmartDialog.showToast`.
  */
 export class SmartConfigToast<TContent = SmartContent> {
-  alignment: SmartAlignment;
+  declare alignment: SmartAlignment;
   animationTime: number;
-  animationType: SmartAnimationType;
+  declare animationType: SmartAnimationType;
   useAnimation: boolean;
   usePenetrate: boolean;
   maskColor: string;
@@ -34,20 +39,33 @@ export class SmartConfigToast<TContent = SmartContent> {
   clickMaskDismiss: boolean;
   debounce: boolean;
   debounceTime: number;
-  displayType: SmartToastType;
+  declare displayType: SmartToastType;
   consumeEvent: boolean;
   displayTime: number;
   intervalTime: number;
-  awaitOverType: SmartAwaitOverType;
-  maskTriggerType: SmartMaskTriggerType;
-  nonAnimationTypes: SmartNonAnimationType[];
+  declare awaitOverType: SmartAwaitOverType;
+  declare maskTriggerType: SmartMaskTriggerType;
+  declare nonAnimationTypes: SmartNonAnimationType[];
   trapFocus: boolean;
   lockScroll: boolean;
   isExist: boolean;
 
   constructor(options: SmartConfigToastOptions<TContent> = {}) {
-    this.alignment = options.alignment ?? Alignment.bottomCenter;
-    this.animationType = options.animationType ?? SmartAnimationType.fade;
+    bindCommonValidatedConfigFields(this, 'SmartConfigToast', {
+      alignment: options.alignment ?? Alignment.bottomCenter,
+      animationType: options.animationType ?? SmartAnimationType.fade,
+      awaitOverType:
+        options.awaitOverType ?? SmartAwaitOverType.dialogDismiss,
+      maskTriggerType: options.maskTriggerType ?? SmartMaskTriggerType.up,
+      nonAnimationTypes: options.nonAnimationTypes ?? [],
+    });
+    bindValidatedProperty(
+      this,
+      'displayType',
+      options.displayType ?? SmartToastType.normal,
+      (v, n) => assertEnumValue(SmartToastType, v, n),
+      'SmartConfigToast.displayType',
+    );
     this.animationTime = resolveDurationMs(options.animationTime ?? 200);
     this.useAnimation = options.useAnimation ?? true;
     this.usePenetrate = options.usePenetrate ?? true;
@@ -56,14 +74,9 @@ export class SmartConfigToast<TContent = SmartContent> {
     this.clickMaskDismiss = options.clickMaskDismiss ?? false;
     this.debounce = options.debounce ?? false;
     this.debounceTime = resolveDurationMs(options.debounceTime ?? 300);
-    this.displayType = options.displayType ?? SmartToastType.normal;
     this.consumeEvent = options.consumeEvent ?? false;
     this.displayTime = resolveDurationMs(options.displayTime ?? 2000);
     this.intervalTime = resolveDurationMs(options.intervalTime ?? 100);
-    this.awaitOverType =
-      options.awaitOverType ?? SmartAwaitOverType.dialogDismiss;
-    this.maskTriggerType = options.maskTriggerType ?? SmartMaskTriggerType.up;
-    this.nonAnimationTypes = options.nonAnimationTypes ?? [];
     this.trapFocus = options.trapFocus ?? false;
     this.lockScroll = options.lockScroll ?? false;
     this.isExist = options.isExist ?? false;

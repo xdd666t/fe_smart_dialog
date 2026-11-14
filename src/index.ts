@@ -6,10 +6,12 @@ export {
   SmartAttachAlignmentType,
   SmartAwaitOverType,
   SmartBackType,
+  SmartHighlightShape,
   SmartInitType,
   SmartMaskTriggerType,
   SmartNonAnimationType,
   SmartStatus,
+  SmartTheme,
   SmartToastType,
 } from './config/enums';
 
@@ -50,10 +52,8 @@ export {
   type ResolvedAlignment,
   type SizeConstructor,
   type SmartAlignment,
-  type SmartCoordinateAlignment,
   type SmartDuration,
   type SmartOffset,
-  type SmartPresetAlignment,
   type SmartRect,
   type SmartResolvedOffset,
   type SmartSize,

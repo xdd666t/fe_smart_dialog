@@ -1,4 +1,10 @@
-import { CloseType, SmartNonAnimationType } from '../config/enums';
+import {
+  CloseType,
+  SmartInitType,
+  SmartNonAnimationType,
+  SmartStatus,
+} from '../config/enums';
+import { validateRuntimeDialogOptions } from '../config/validation';
 import { resolveDurationMs } from '../types/common';
 import type { SmartShowLoadingOptions } from '../types/params';
 import type { MainDialogHandle } from './dialog-host';
@@ -19,6 +25,7 @@ export class CustomLoading {
     proxy: DialogProxy,
     options: SmartShowLoadingOptions,
   ): Promise<T | undefined> {
+    validateRuntimeDialogOptions('SmartDialog.showLoading', options);
     const config = proxy.config.loading;
     const msg = options.msg ?? 'loading...';
 
@@ -64,7 +71,7 @@ export class CustomLoading {
     }
 
     if (!this.mainDialog) {
-      this.mainDialog = proxy.createMainDialog('loading');
+      this.mainDialog = proxy.createMainDialog(SmartInitType.loading);
     }
 
     const builder =
@@ -76,7 +83,7 @@ export class CustomLoading {
       context: {
         controller: options.controller,
         dismiss: (res) =>
-          proxy.dismiss({ status: 'loading', result: res }),
+          proxy.dismiss({ status: SmartStatus.loading, result: res }),
       },
     });
 
@@ -122,7 +129,7 @@ export class CustomLoading {
       onMask: () => {
         options.onMask?.();
         if (!clickMaskDismiss) return;
-        void this.realDismiss(proxy, 'mask');
+        void this.realDismiss(proxy, CloseType.mask);
       },
     });
 
@@ -151,7 +158,7 @@ export class CustomLoading {
 
   private async realDismiss<T>(
     proxy: DialogProxy,
-    closeType: CloseType = 'normal',
+    closeType: CloseType = CloseType.normal,
     result?: T,
   ): Promise<void> {
     proxy.config.loading.isExist = false;
@@ -165,7 +172,7 @@ export class CustomLoading {
     proxy: DialogProxy,
     options: { closeType?: CloseType; result?: T } = {},
   ): Promise<void> {
-    const closeType = options.closeType ?? 'normal';
+    const closeType = options.closeType ?? CloseType.normal;
     if (!proxy.config.loading.isExist && !this.mainDialog?.visible) {
       return;
     }

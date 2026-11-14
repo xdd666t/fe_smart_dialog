@@ -4,6 +4,9 @@ import {
   SmartAllDialogType,
   SmartInitType,
   SmartStatus,
+  SmartTheme,
+  assertEnumIterable,
+  assertEnumValue,
 } from '../config/enums';
 import { SmartConfig } from '../config/smart-config';
 import type {
@@ -96,15 +99,24 @@ export class DialogProxy {
 
   init(options: SmartInitOptions = {}): void {
     const bridge = this.requireBridge();
-    this.enabledInitTypes = new Set<SmartInitType>(
-      options.initType ?? [
-        SmartInitType.custom,
-        SmartInitType.attach,
-        SmartInitType.notify,
-        SmartInitType.loading,
-        SmartInitType.toast,
-      ],
-    );
+    const validatedInitTypes =
+      options.initType !== undefined
+        ? assertEnumIterable(
+            SmartInitType,
+            options.initType,
+            'SmartInitOptions.initType',
+          )
+        : [
+            SmartInitType.custom,
+            SmartInitType.attach,
+            SmartInitType.notify,
+            SmartInitType.loading,
+            SmartInitType.toast,
+          ];
+    if (options.theme !== undefined) {
+      assertEnumValue(SmartTheme, options.theme, 'SmartInitOptions.theme');
+    }
+    this.enabledInitTypes = new Set<SmartInitType>(validatedInitTypes);
 
     if (this.enabledInitTypes.has(SmartInitType.toast)) {
       this.toastBuilder = options.toastBuilder ?? bridge.defaultToastBuilder;
@@ -152,13 +164,13 @@ export class DialogProxy {
       this.enabledInitTypes.add(requiredLayer);
       this.requireBridge().ensureInitialized(this.enabledInitTypes);
       const bridge = this.requireBridge();
-      if (requiredLayer === 'toast' && !this.toastBuilder) {
+      if (requiredLayer === SmartInitType.toast && !this.toastBuilder) {
         this.toastBuilder = bridge.defaultToastBuilder;
       }
-      if (requiredLayer === 'loading' && !this.loadingBuilder) {
+      if (requiredLayer === SmartInitType.loading && !this.loadingBuilder) {
         this.loadingBuilder = bridge.defaultLoadingBuilder;
       }
-      if (requiredLayer === 'notify' && !this.notifyStyle) {
+      if (requiredLayer === SmartInitType.notify && !this.notifyStyle) {
         this.notifyStyle = bridge.defaultNotifyStyle;
       }
     }
@@ -228,11 +240,17 @@ export class DialogProxy {
       closeType?: CloseType;
     } = {},
   ): Promise<void> {
-    const status = options.status ?? SmartStatus.smart;
+    const status =
+      options.status !== undefined
+        ? assertEnumValue(SmartStatus, options.status, 'SmartDismissOptions.status')
+        : SmartStatus.smart;
     const tag = options.tag;
     const result = options.result;
     const force = options.force ?? false;
-    const closeType = options.closeType ?? 'normal';
+    const closeType =
+      options.closeType !== undefined
+        ? assertEnumValue(CloseType, options.closeType, 'SmartDismissOptions.closeType')
+        : CloseType.normal;
 
     if (status === SmartStatus.smart) {
       const loading = this.config.loading.isExist;
@@ -251,7 +269,7 @@ export class DialogProxy {
         }
         if (useNotify) {
           return CustomNotify.dismiss(this, {
-            type: 'notify',
+            type: DialogType.notify,
             tag,
             result,
             closeType,
@@ -261,7 +279,7 @@ export class DialogProxy {
 
       if (this.dialogQueue.length > 0) {
         return CustomDialog.dismiss(this, {
-          type: 'dialog',
+          type: DialogType.dialog,
           tag,
           result,
           force,
@@ -306,27 +324,38 @@ export class DialogProxy {
     tag?: string;
     dialogTypes?: Iterable<SmartAllDialogType>;
   } = {}): boolean {
-    return DialogKit.instance.checkExist(this, options);
+    const dialogTypes =
+      options.dialogTypes !== undefined
+        ? assertEnumIterable(
+            SmartAllDialogType,
+            options.dialogTypes,
+            'SmartCheckExistOptions.dialogTypes',
+          )
+        : undefined;
+    return DialogKit.instance.checkExist(this, {
+      ...options,
+      dialogTypes,
+    });
   }
 
   private convertStatus(status: SmartStatus): DialogType | null {
     switch (status) {
       case SmartStatus.dialog:
-        return 'dialog';
+        return DialogType.dialog;
       case SmartStatus.custom:
-        return 'custom';
+        return DialogType.custom;
       case SmartStatus.attach:
-        return 'attach';
+        return DialogType.attach;
       case SmartStatus.notify:
-        return 'notify';
+        return DialogType.notify;
       case SmartStatus.allDialog:
-        return 'allDialog';
+        return DialogType.allDialog;
       case SmartStatus.allCustom:
-        return 'allCustom';
+        return DialogType.allCustom;
       case SmartStatus.allAttach:
-        return 'allAttach';
+        return DialogType.allAttach;
       case SmartStatus.allNotify:
-        return 'allNotify';
+        return DialogType.allNotify;
       case SmartStatus.smart:
       case SmartStatus.toast:
       case SmartStatus.allToast:

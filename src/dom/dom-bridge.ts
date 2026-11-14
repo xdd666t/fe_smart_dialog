@@ -1,3 +1,4 @@
+import { SmartInitType } from '../config/enums';
 import type { DomBridge } from '../core/dialog-proxy';
 import {
   createDefaultLoadingWidget,
@@ -15,8 +16,7 @@ export function createDomBridge(): DomBridge {
     },
     ensureInitialized(initTypes) {
       OverlayManager.instance.ensureInitialized(
-        initTypes ??
-          new Set(['custom', 'attach', 'notify', 'loading', 'toast']),
+        initTypes ?? new Set(Object.values(SmartInitType)),
       );
     },
     createMainDialog(layer, extra) {

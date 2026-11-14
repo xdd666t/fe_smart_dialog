@@ -1,4 +1,8 @@
-import { SmartNonAnimationType } from '../config/enums';
+import {
+  SmartHighlightShape,
+  SmartNonAnimationType,
+  assertEnumValue,
+} from '../config/enums';
 import { RendererRegistry, type MountedContentHandle } from '../core/renderer';
 import type {
   SmartOffset,
@@ -131,7 +135,12 @@ export class HighlightMaskRenderer {
     const outerPath = `M 0 0 H ${width} V ${height} H 0 Z`;
     let holePath = '';
 
-    if (region.shape === 'circle') {
+    const shape =
+      region.shape !== undefined
+        ? assertEnumValue(SmartHighlightShape, region.shape, 'HighlightRegion.shape')
+        : SmartHighlightShape.rect;
+
+    if (shape === SmartHighlightShape.circle) {
       const r = Math.max(w, h) / 2;
       const cx = x + w / 2;
       const cy = y + h / 2;

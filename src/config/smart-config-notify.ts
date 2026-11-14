@@ -4,7 +4,12 @@ import {
   SmartBackType,
   SmartMaskTriggerType,
   SmartNonAnimationType,
+  assertEnumValue,
 } from './enums';
+import {
+  bindCommonValidatedConfigFields,
+  bindValidatedProperty,
+} from './validation';
 import type { SmartAlignment, SmartDuration } from '../types/common';
 import { Alignment, resolveDurationMs } from '../types/common';
 import type { SmartConfigCommonOptions, SmartContent } from '../types/params';
@@ -22,9 +27,9 @@ export interface SmartConfigNotifyOptions<TContent = SmartContent>
  * Global configuration for `SmartDialog.showNotify`.
  */
 export class SmartConfigNotify<TContent = SmartContent> {
-  alignment: SmartAlignment;
+  declare alignment: SmartAlignment;
   animationTime: number;
-  animationType: SmartAnimationType;
+  declare animationType: SmartAnimationType;
   useAnimation: boolean;
   usePenetrate: boolean;
   maskColor: string;
@@ -33,17 +38,30 @@ export class SmartConfigNotify<TContent = SmartContent> {
   debounce: boolean;
   debounceTime: number;
   displayTime: number | null;
-  awaitOverType: SmartAwaitOverType;
-  maskTriggerType: SmartMaskTriggerType;
-  nonAnimationTypes: SmartNonAnimationType[];
-  backType: SmartBackType;
+  declare awaitOverType: SmartAwaitOverType;
+  declare maskTriggerType: SmartMaskTriggerType;
+  declare nonAnimationTypes: SmartNonAnimationType[];
+  declare backType: SmartBackType;
   trapFocus: boolean;
   lockScroll: boolean;
   isExist: boolean;
 
   constructor(options: SmartConfigNotifyOptions<TContent> = {}) {
-    this.alignment = options.alignment ?? Alignment.center;
-    this.animationType = options.animationType ?? SmartAnimationType.fade;
+    bindCommonValidatedConfigFields(this, 'SmartConfigNotify', {
+      alignment: options.alignment ?? Alignment.center,
+      animationType: options.animationType ?? SmartAnimationType.fade,
+      awaitOverType:
+        options.awaitOverType ?? SmartAwaitOverType.dialogDismiss,
+      maskTriggerType: options.maskTriggerType ?? SmartMaskTriggerType.up,
+      nonAnimationTypes: options.nonAnimationTypes ?? [],
+    });
+    bindValidatedProperty(
+      this,
+      'backType',
+      options.backType ?? SmartBackType.ignore,
+      (v, n) => assertEnumValue(SmartBackType, v, n),
+      'SmartConfigNotify.backType',
+    );
     this.animationTime = resolveDurationMs(options.animationTime ?? 200);
     this.useAnimation = options.useAnimation ?? true;
     this.usePenetrate = options.usePenetrate ?? true;
@@ -56,11 +74,6 @@ export class SmartConfigNotify<TContent = SmartContent> {
       options.displayTime === null
         ? null
         : resolveDurationMs(options.displayTime ?? 2500);
-    this.awaitOverType =
-      options.awaitOverType ?? SmartAwaitOverType.dialogDismiss;
-    this.maskTriggerType = options.maskTriggerType ?? SmartMaskTriggerType.up;
-    this.nonAnimationTypes = options.nonAnimationTypes ?? [];
-    this.backType = options.backType ?? SmartBackType.ignore;
     this.trapFocus = options.trapFocus ?? false;
     this.lockScroll = options.lockScroll ?? false;
     this.isExist = options.isExist ?? false;

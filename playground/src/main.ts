@@ -1,10 +1,11 @@
 import './styles.css';
-import { SmartDialog, SmartStatus } from 'fe-smart-dialog';
+import { SmartDialog, SmartStatus, SmartTheme } from 'fe-smart-dialog';
 import { ATTACH_DEMOS } from './demos/attachDemos';
 import { DIALOG_DEMOS } from './demos/dialogDemos';
 import { FEEDBACK_DEMOS } from './demos/feedbackDemos';
 import { OTHER_AND_FRAMEWORK_DEMOS } from './demos/otherFrameworkDemos';
 import type { DemoCategoryId, DemoCategoryMeta, DemoEntry } from './types/demo';
+import { THEME_BY_KEY } from './utils/enumMaps';
 import { renderHighlightedCode } from './utils/highlight';
 
 const CATEGORIES: DemoCategoryMeta[] = [
@@ -56,7 +57,7 @@ const ALL_DEMOS: DemoEntry[] = [
 const DIALOG_PARAM = 'dialogType';
 
 const rootEl = document.documentElement;
-let currentTheme: 'auto' | 'light' | 'dark' = 'auto';
+let currentTheme: SmartTheme = SmartTheme.auto;
 rootEl.setAttribute('data-pg-theme', currentTheme);
 
 const appEl = document.getElementById('app')!;
@@ -214,17 +215,18 @@ toggleSidebarBtn.onclick = () => {
 
 for (const themeBtn of appEl.querySelectorAll<HTMLButtonElement>('[data-theme-opt]')) {
   themeBtn.onclick = () => {
-    const theme = themeBtn.getAttribute('data-theme-opt') as 'auto' | 'light' | 'dark';
+    const raw = themeBtn.getAttribute('data-theme-opt') ?? 'auto';
+    const theme = THEME_BY_KEY[raw] ?? SmartTheme.auto;
     currentTheme = theme;
-    rootEl.setAttribute('data-pg-theme', theme);
+    rootEl.setAttribute('data-pg-theme', raw);
     SmartDialog.init({ theme });
     for (const btn of appEl.querySelectorAll<HTMLButtonElement>('[data-theme-opt]')) {
       btn.setAttribute(
         'aria-pressed',
-        btn.getAttribute('data-theme-opt') === theme ? 'true' : 'false',
+        btn.getAttribute('data-theme-opt') === raw ? 'true' : 'false',
       );
     }
-    appendLog(`theme -> ${theme}`);
+    appendLog(`theme -> SmartTheme.${raw}`);
   };
 }
 

@@ -16,6 +16,7 @@ test.describe('Attach Positioning, Scroll Tracking, Imitate & SVG Spotlight Tour
     await page.getByTestId('attach-anchor-btn').click();
     const pop = page.getByTestId('attach-popover');
     await expect(pop).toBeVisible();
+    await page.waitForTimeout(240);
     const bottomBox = (await pop.boundingBox())!;
     expect(bottomBox.y).toBeGreaterThanOrEqual(anchorBox.y + anchorBox.height - 2);
 
@@ -27,6 +28,7 @@ test.describe('Attach Positioning, Scroll Tracking, Imitate & SVG Spotlight Tour
     await page.getByTestId('attach-mode-select').selectOption('outside');
     await page.getByTestId('attach-anchor-btn').click();
     await expect(pop).toBeVisible();
+    await page.waitForTimeout(240);
     const topLeftOutsideBox = (await pop.boundingBox())!;
     expect(topLeftOutsideBox.y + topLeftOutsideBox.height).toBeLessThanOrEqual(
       anchorBox.y + 2,

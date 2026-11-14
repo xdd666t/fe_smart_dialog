@@ -434,7 +434,10 @@ export class MainDialog implements MainDialogHandle {
   private setupAccessibility(param: MainDialogShowParam): void {
     if (!this.bodyEl) return;
 
-    if (this.layer === 'custom' || this.layer === 'attach') {
+    if (
+      this.layer === SmartInitType.custom ||
+      this.layer === SmartInitType.attach
+    ) {
       this.bodyEl.setAttribute('role', 'dialog');
       if (!param.usePenetrate) {
         this.bodyEl.setAttribute('aria-modal', 'true');
@@ -525,7 +528,7 @@ export class MainDialog implements MainDialogHandle {
     result?: T;
     closeType?: CloseType;
   }): Promise<void> {
-    const closeType = options.closeType ?? 'normal';
+    const closeType = options.closeType ?? CloseType.normal;
     const onDismiss = this.onDismissCallback;
     this.onDismissCallback = undefined;
     onDismiss?.();

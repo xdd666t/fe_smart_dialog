@@ -5,7 +5,12 @@ import {
   SmartBackType,
   SmartMaskTriggerType,
   SmartNonAnimationType,
+  assertEnumValue,
 } from './enums';
+import {
+  bindCommonValidatedConfigFields,
+  bindValidatedProperty,
+} from './validation';
 import type { SmartAlignment, SmartDuration } from '../types/common';
 import { Alignment, resolveDurationMs } from '../types/common';
 import type { SmartConfigCommonOptions, SmartContent } from '../types/params';
@@ -24,9 +29,9 @@ export interface SmartConfigAttachOptions<TContent = SmartContent>
  * Global configuration for `SmartDialog.showAttach`.
  */
 export class SmartConfigAttach<TContent = SmartContent> {
-  alignment: SmartAlignment;
+  declare alignment: SmartAlignment;
   animationTime: number;
-  animationType: SmartAnimationType;
+  declare animationType: SmartAnimationType;
   useAnimation: boolean;
   usePenetrate: boolean;
   maskColor: string;
@@ -35,19 +40,42 @@ export class SmartConfigAttach<TContent = SmartContent> {
   debounce: boolean;
   debounceTime: number;
   bindPage: boolean;
-  awaitOverType: SmartAwaitOverType;
-  maskTriggerType: SmartMaskTriggerType;
-  nonAnimationTypes: SmartNonAnimationType[];
-  attachAlignmentType: SmartAttachAlignmentType;
-  backType: SmartBackType;
+  declare awaitOverType: SmartAwaitOverType;
+  declare maskTriggerType: SmartMaskTriggerType;
+  declare nonAnimationTypes: SmartNonAnimationType[];
+  declare attachAlignmentType: SmartAttachAlignmentType;
+  declare backType: SmartBackType;
   trapFocus: boolean;
   lockScroll: boolean;
   isExist: boolean;
 
   constructor(options: SmartConfigAttachOptions<TContent> = {}) {
-    this.alignment = options.alignment ?? Alignment.bottomCenter;
-    this.animationType =
-      options.animationType ?? SmartAnimationType.centerScale_otherSlide;
+    bindCommonValidatedConfigFields(this, 'SmartConfigAttach', {
+      alignment: options.alignment ?? Alignment.bottomCenter,
+      animationType:
+        options.animationType ?? SmartAnimationType.centerScale_otherSlide,
+      awaitOverType:
+        options.awaitOverType ?? SmartAwaitOverType.dialogDismiss,
+      maskTriggerType: options.maskTriggerType ?? SmartMaskTriggerType.up,
+      nonAnimationTypes: options.nonAnimationTypes ?? [
+        SmartNonAnimationType.routeClose_nonAnimation,
+        SmartNonAnimationType.highlightMask_nonAnimation,
+      ],
+    });
+    bindValidatedProperty(
+      this,
+      'attachAlignmentType',
+      options.attachAlignmentType ?? SmartAttachAlignmentType.center,
+      (v, n) => assertEnumValue(SmartAttachAlignmentType, v, n),
+      'SmartConfigAttach.attachAlignmentType',
+    );
+    bindValidatedProperty(
+      this,
+      'backType',
+      options.backType ?? SmartBackType.normal,
+      (v, n) => assertEnumValue(SmartBackType, v, n),
+      'SmartConfigAttach.backType',
+    );
     this.animationTime = resolveDurationMs(options.animationTime ?? 200);
     this.useAnimation = options.useAnimation ?? true;
     this.usePenetrate = options.usePenetrate ?? false;
@@ -57,16 +85,6 @@ export class SmartConfigAttach<TContent = SmartContent> {
     this.debounce = options.debounce ?? false;
     this.debounceTime = resolveDurationMs(options.debounceTime ?? 300);
     this.bindPage = options.bindPage ?? true;
-    this.awaitOverType =
-      options.awaitOverType ?? SmartAwaitOverType.dialogDismiss;
-    this.maskTriggerType = options.maskTriggerType ?? SmartMaskTriggerType.up;
-    this.nonAnimationTypes = options.nonAnimationTypes ?? [
-      SmartNonAnimationType.routeClose_nonAnimation,
-      SmartNonAnimationType.highlightMask_nonAnimation,
-    ];
-    this.attachAlignmentType =
-      options.attachAlignmentType ?? SmartAttachAlignmentType.center;
-    this.backType = options.backType ?? SmartBackType.normal;
     this.trapFocus = options.trapFocus ?? false;
     this.lockScroll = options.lockScroll ?? false;
     this.isExist = options.isExist ?? false;

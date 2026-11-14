@@ -5,11 +5,16 @@ import {
   SmartAnimationType,
   SmartAttachAlignmentType,
   SmartDialog,
+  SmartHighlightShape,
   SmartNonAnimationType,
   SmartStatus,
-  type SmartPresetAlignment,
 } from 'fe-smart-dialog';
 import type { DemoEntry } from '../types/demo';
+import {
+  ALIGNMENT_BY_KEY,
+  ATTACH_ALIGNMENT_BY_KEY,
+  PRESET_ALIGNMENT_ENTRIES,
+} from '../utils/enumMaps';
 
 function randomHslColor(): string {
   const hue = Math.floor(Math.random() * 360);
@@ -91,13 +96,14 @@ SmartDialog.showAttach({
 
       anchorBtn.onclick = () => {
         SmartDialog.config.attach.attachAlignmentType =
-          modeSel.value as SmartAttachAlignmentType;
-        const align = alignSel.value as SmartPresetAlignment;
+          ATTACH_ALIGNMENT_BY_KEY[modeSel.value] ??
+          SmartAttachAlignmentType.center;
+        const align = alignSel.value;
+        const alignment = ALIGNMENT_BY_KEY[align] ?? Alignment.bottomCenter;
         ctx.log(`showAttach(${align}, ${modeSel.value})`);
         void SmartDialog.showAttach({
           targetContext: anchorBtn,
-          alignment: Alignment[align],
-          useAnimation: false,
+          alignment,
           builder: () => {
             const pop = document.createElement('div');
             pop.className = 'pg-popover';
@@ -115,7 +121,6 @@ SmartDialog.showAttach({
           alignment: Alignment.topCenter,
           usePenetrate: true,
           clickMaskDismiss: false,
-          useAnimation: false,
           adjustBuilder: (param) => {
             if (param.selfOffset.y < 10) {
               return new AttachAdjustParam({ alignment: Alignment.bottomCenter });
@@ -133,17 +138,6 @@ SmartDialog.showAttach({
       };
 
       openGridBtn.onclick = () => {
-        const alignNames: SmartPresetAlignment[] = [
-          'topLeft',
-          'topCenter',
-          'topRight',
-          'centerLeft',
-          'center',
-          'centerRight',
-          'bottomLeft',
-          'bottomCenter',
-          'bottomRight',
-        ];
         void SmartDialog.show({
           onDismiss: () => {
             SmartDialog.config.attach.attachAlignmentType =
@@ -177,16 +171,16 @@ SmartDialog.showAttach({
             const grid = document.createElement('div');
             grid.style.cssText =
               'display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;';
-            const btnEls: Array<{ btn: HTMLButtonElement; align: SmartPresetAlignment }> = [];
+            const btnEls: Array<{ btn: HTMLButtonElement; align: Alignment }> = [];
 
-            for (const name of alignNames) {
+            for (const { name, value } of PRESET_ALIGNMENT_ENTRIES) {
               const btn = document.createElement('button');
               btn.className = 'pg-btn pg-btn--sm';
               btn.textContent = name;
               btn.onclick = () => {
                 void SmartDialog.showAttach({
                   targetContext: btn,
-                  alignment: Alignment[name],
+                  alignment: value,
                   usePenetrate: true,
                   clickMaskDismiss: false,
                   builder: () => {
@@ -197,7 +191,7 @@ SmartDialog.showAttach({
                   },
                 });
               };
-              btnEls.push({ btn, align: name });
+              btnEls.push({ btn, align: value });
               grid.appendChild(btn);
             }
 
@@ -589,7 +583,12 @@ SmartDialog.showAttach({
     label: 'guide',
     description:
       '参考 flutter_use AttachDialogGuide：两步 SVG evenodd 聚光灯高亮引导（圆形切口 -> 圆角矩形切口），使用 keepSingle 丝滑切换。',
-    code: `import { Alignment, SmartDialog, SmartNonAnimationType } from 'fe-smart-dialog';
+    code: `import {
+  Alignment,
+  SmartDialog,
+  SmartHighlightShape,
+  SmartNonAnimationType,
+} from 'fe-smart-dialog';
 
 SmartDialog.showAttach({
   tag: 'spotlight-tour',
@@ -606,7 +605,7 @@ SmartDialog.showAttach({
     width: size.width + 12,
     height: size.height + 12,
     borderRadius: 10,
-    shape: step === 1 ? 'circle' : 'rect',
+    shape: step === 1 ? SmartHighlightShape.circle : SmartHighlightShape.rect,
   }),
   builder: () => tourPopoverCard,
 });`,
@@ -640,7 +639,6 @@ SmartDialog.showAttach({
           keepSingle: true,
           targetContext: target,
           alignment: Alignment.bottomCenter,
-          useAnimation: false,
           nonAnimationTypes: [
             SmartNonAnimationType.highlightMask_nonAnimation,
             SmartNonAnimationType.continueKeepSingle,
@@ -651,7 +649,8 @@ SmartDialog.showAttach({
             width: size.width + 12,
             height: size.height + 12,
             borderRadius: 10,
-            shape: step === 1 ? 'circle' : 'rect',
+            shape:
+              step === 1 ? SmartHighlightShape.circle : SmartHighlightShape.rect,
           }),
           builder: ({ dismiss }) => {
             const box = document.createElement('div');

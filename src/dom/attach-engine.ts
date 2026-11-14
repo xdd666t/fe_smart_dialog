@@ -2,8 +2,10 @@ import { SmartAttachAlignmentType } from '../config/enums';
 import type { DialogProxy } from '../core/dialog-proxy';
 import type { DialogScope } from '../core/dialog-scope';
 import {
+  Alignment,
   Offset,
   Size,
+  assertAlignment,
   resolveAlignment,
   type SmartAlignment,
   type SmartOffset,
@@ -190,7 +192,10 @@ export class AttachEngine {
         needsRecompute = true;
       }
 
-      const nextAlignment = adjustParam.alignment ?? currentAlignment;
+      const nextAlignment =
+        adjustParam.alignment !== undefined
+          ? assertAlignment(adjustParam.alignment, 'adjustBuilder().alignment')
+          : currentAlignment;
       if (nextAlignment !== currentAlignment || needsRecompute) {
         return this.recalculate(params, 1, nextAlignment);
       }

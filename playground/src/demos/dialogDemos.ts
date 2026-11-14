@@ -8,9 +8,12 @@ import {
   SmartStatus,
   html,
   type SmartAlignment,
-  type SmartPresetAlignment,
 } from 'fe-smart-dialog';
 import type { DemoEntry } from '../types/demo';
+import {
+  ALIGNMENT_BY_KEY,
+  ANIMATION_TYPE_BY_KEY,
+} from '../utils/enumMaps';
 
 function randomHslColor(): string {
   const hue = Math.floor(Math.random() * 360);
@@ -91,7 +94,6 @@ controller.refresh();`,
         void SmartDialog.show({
           tag: 'pg-controller',
           controller,
-          useAnimation: false,
           builder: ({ dismiss }) => {
             const card = document.createElement('div');
             card.className = 'pg-dialog-box';
@@ -122,7 +124,6 @@ controller.refresh();`,
         const unsafeInput = '<img src=x onerror=alert(1)>';
         ctx.log('SmartDialog.show(html XSS escape)');
         void SmartDialog.show({
-          useAnimation: false,
           builder: ({ dismiss }) => {
             const card = document.createElement('div');
             card.className = 'pg-dialog-box';
@@ -254,18 +255,22 @@ async function showLocationSequence() {
       };
 
       showBtn.onclick = () => {
-        const alignment = alignSel.value as SmartPresetAlignment;
-        const animationType = animSel.value as SmartAnimationType;
-        ctx.log(`show custom(${alignment}, ${animationType})`);
+        const alignName = alignSel.value;
+        const animName = animSel.value;
+        const alignment = ALIGNMENT_BY_KEY[alignName] ?? Alignment.center;
+        const animationType =
+          ANIMATION_TYPE_BY_KEY[animName] ??
+          SmartAnimationType.centerScale_otherSlide;
+        ctx.log(`show custom(${alignName}, ${animName})`);
         void SmartDialog.show({
           tag: 'pg-custom',
-          alignment: Alignment[alignment],
+          alignment,
           animationType,
           builder: ({ dismiss }) => {
             const card = document.createElement('div');
             card.className = 'pg-dialog-box';
             card.setAttribute('data-testid', 'custom-dialog-card');
-            card.innerHTML = `<h4 style="margin:0 0 6px;">Custom Dialog</h4><p style="margin:0 0 12px;color:var(--pg-muted);">Alignment: ${alignment}</p>`;
+            card.innerHTML = `<h4 style="margin:0 0 6px;">Custom Dialog</h4><p style="margin:0 0 12px;color:var(--pg-muted);">Alignment: ${alignName}</p>`;
             const closeBtn = document.createElement('button');
             closeBtn.className = 'pg-btn pg-btn--primary';
             closeBtn.textContent = 'Close';
@@ -386,7 +391,6 @@ SmartDialog.show({
           alignment: Alignment.topCenter,
           usePenetrate: true,
           clickMaskDismiss: false,
-          useAnimation: false,
           builder: ({ dismiss }) => {
             const card = document.createElement('div');
             card.className = 'pg-dialog-box';
@@ -419,7 +423,6 @@ SmartDialog.show({
           SmartDialog.config.custom.maskTriggerType = trigger;
           ctx.log(`config.custom.maskTriggerType = ${trigger}`);
           void SmartDialog.show({
-            useAnimation: false,
             onDismiss: () => {
               SmartDialog.config.custom.maskTriggerType =
                 SmartMaskTriggerType.up;
@@ -692,12 +695,12 @@ const res = await SmartDialog.show<string>({
     label: 'bindPage',
     description:
       '参考 flutter_use CustomDialogBindPage：绑定当前浏览器路径，pushState 进入子路由时自动隐藏，popstate 返回时自动恢复显示。',
-    code: `import { SmartDialog } from 'fe-smart-dialog';
+    code: `import { Alignment, SmartDialog } from 'fe-smart-dialog';
 
 SmartDialog.show({
   tag: 'pg-bindpage',
   bindPage: true, // 默认已为 true
-  alignment: 'bottomLeft',
+  alignment: Alignment.bottomLeft,
   usePenetrate: true,
   clickMaskDismiss: false,
   builder: () => pageCard,
@@ -738,8 +741,7 @@ history.back();`,
           tag: 'pg-bindpage',
           bindPage: true,
           clickMaskDismiss: false,
-          useAnimation: false,
-          alignment: 'bottomLeft',
+          alignment: Alignment.bottomLeft,
           usePenetrate: true,
           builder: () => {
             const el = document.createElement('div');
@@ -882,7 +884,6 @@ SmartDialog.dismiss({ tag: 'pg-permanent', force: true });`,
           alignment: Alignment.centerRight,
           usePenetrate: true,
           clickMaskDismiss: false,
-          useAnimation: false,
           builder: () => {
             const box = document.createElement('div');
             box.className = 'pg-handle-drawer pg-handle-drawer--right';
@@ -1098,8 +1099,7 @@ SmartDialog.show({
           tag: 'pg-bindwidget',
           bindElement: boundPanel,
           clickMaskDismiss: false,
-          useAnimation: false,
-          alignment: 'bottomRight',
+          alignment: Alignment.bottomRight,
           usePenetrate: true,
           builder: () => {
             const el = document.createElement('div');
@@ -1193,7 +1193,6 @@ SmartDialog.show({
         void SmartDialog.show({
           tag: 'pg-onback',
           backType: SmartBackType.normal,
-          useAnimation: false,
           onBack: () => {
             presses += 1;
             ctx.log(`onBack pressed #${presses}`);

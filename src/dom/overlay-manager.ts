@@ -1,4 +1,4 @@
-import { SmartInitType } from '../config/enums';
+import { SmartInitType, SmartTheme, assertEnumValue } from '../config/enums';
 import { RendererRegistry } from '../core/renderer';
 import { injectDefaultStyles } from '../styles/inject';
 import type { SmartInitOptions, SmartStyleBuilder } from '../types/params';
@@ -28,7 +28,7 @@ export class OverlayManager {
 
   private containerRef: HTMLElement | string | undefined;
   private zIndexBase = 9999;
-  private theme: 'auto' | 'light' | 'dark' = 'auto';
+  private theme: SmartTheme = SmartTheme.auto;
   private shouldInjectStyles = true;
   private styleBuilder: SmartStyleBuilder | undefined;
   private scrollLockOwners = new Set<object>();
@@ -46,7 +46,11 @@ export class OverlayManager {
       this.zIndexBase = options.zIndexBase;
     }
     if (options.theme !== undefined) {
-      this.theme = options.theme;
+      this.theme = assertEnumValue(
+        SmartTheme,
+        options.theme,
+        'SmartInitOptions.theme',
+      );
     }
     if (options.injectStyles !== undefined) {
       this.shouldInjectStyles = options.injectStyles;
@@ -204,7 +208,7 @@ export class OverlayManager {
     this.layers.clear();
     this.containerRef = undefined;
     this.zIndexBase = 9999;
-    this.theme = 'auto';
+    this.theme = SmartTheme.auto;
     this.shouldInjectStyles = true;
     this.styleBuilder = undefined;
   }

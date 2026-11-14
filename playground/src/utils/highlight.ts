@@ -7,7 +7,7 @@ function escapeHtml(text: string): string {
 }
 
 const TOKEN_RE =
-  /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|`(?:\\.|[^`\\])*`|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|\b(?:import|from|export|const|let|var|function|async|await|return|if|else|for|of|new|void|true|false|null|undefined|type|interface)\b|\b(?:SmartDialog|SmartStatus|SmartToastType|SmartAnimationType|SmartAttachAlignmentType|SmartNonAnimationType|SmartMaskTriggerType|SmartBackType|SmartConfigAttach|SmartConfigLoading|SmartConfigToast|SmartDialogController|SmartDialogProvider|SmartDialogPlugin|Alignment|Duration|Offset|AttachAdjustParam|NotifyType|html|useSmartDialog|useSmartDialogController|useBindWidget)\b|\b\d+(?:\.\d+)?\b)/g;
+  /(\/\/[^\n]*|\/\*[\s\S]*?\*\/|`(?:\\.|[^`\\])*`|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|\b(?:import|from|export|const|let|var|function|async|await|return|if|else|for|of|new|void|true|false|null|undefined|type|interface)\b|\b(?:SmartDialog|SmartStatus|SmartAllDialogType|SmartToastType|SmartAnimationType|SmartAwaitOverType|SmartAttachAlignmentType|SmartNonAnimationType|SmartMaskTriggerType|SmartBackType|SmartInitType|SmartHighlightShape|SmartTheme|SmartConfigAttach|SmartConfigLoading|SmartConfigToast|SmartDialogController|SmartDialogProvider|SmartDialogPlugin|Alignment|Duration|Offset|AttachAdjustParam|NotifyType|html|useSmartDialog|useSmartDialogController|useBindWidget)\b|\b\d+(?:\.\d+)?\b)/g;
 
 function highlightSegment(line: string): string {
   let out = '';

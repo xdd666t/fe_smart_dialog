@@ -1,6 +1,7 @@
 import {
   Alignment,
   NotifyType,
+  SmartAllDialogType,
   SmartAnimationType,
   SmartBackType,
   SmartConfigLoading,
@@ -28,7 +29,6 @@ function createNotifyBar(ctxLog: (m: string) => void): HTMLElement {
         notifyType: type,
         msg: `${type.toUpperCase()} message`,
         displayTime: 2200,
-        useAnimation: false,
       });
     };
     actions.appendChild(btn);
@@ -349,7 +349,6 @@ void SmartDialog.showLoading({
         ctx.log('showLoading(leastLoadingTime=450), calling dismiss at 50ms');
         void SmartDialog.showLoading({
           msg: 'Min 450ms Loading',
-          useAnimation: false,
         });
         setTimeout(() => {
           void SmartDialog.dismiss({ status: SmartStatus.loading });
@@ -365,7 +364,6 @@ void SmartDialog.showLoading({
           msg: 'Esc Blocked Loading',
           backType: SmartBackType.block,
           usePenetrate: true,
-          useAnimation: false,
         });
       };
 
@@ -516,12 +514,12 @@ for (const n of ['1', '2', '3']) {
         ctx.log('Toast: multi stack');
         void SmartDialog.showToast('Stacked Toast A', {
           displayType: SmartToastType.multi,
-          alignment: 'bottomCenter',
+          alignment: Alignment.bottomCenter,
           displayTime: 2500,
         });
         void SmartDialog.showToast('Stacked Toast B', {
           displayType: SmartToastType.multi,
-          alignment: 'bottomCenter',
+          alignment: Alignment.bottomCenter,
           displayTime: 2500,
         });
       };
@@ -648,7 +646,7 @@ for (let i = 0; i < 3; i++) {
           void SmartDialog.showToast(`toast ${i}`).then(() => {
             if (
               !SmartDialog.checkExist({
-                dialogTypes: ['toast'],
+                dialogTypes: [SmartAllDialogType.toast],
               })
             ) {
               SmartDialog.config.toast = new SmartConfigToast();

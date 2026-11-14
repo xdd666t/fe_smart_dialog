@@ -41,19 +41,19 @@ export function resolveDismissAnimationDuration(options: {
   for (const type of options.nonAnimationTypes) {
     if (type === SmartNonAnimationType.closeDialog_nonAnimation) return 0;
     if (
-      options.closeType === 'route' &&
+      options.closeType === CloseType.route &&
       type === SmartNonAnimationType.routeClose_nonAnimation
     ) {
       return 0;
     }
     if (
-      options.closeType === 'mask' &&
+      options.closeType === CloseType.mask &&
       type === SmartNonAnimationType.maskClose_nonAnimation
     ) {
       return 0;
     }
     if (
-      options.closeType === 'back' &&
+      options.closeType === CloseType.back &&
       type === SmartNonAnimationType.backClose_nonAnimation
     ) {
       return 0;
@@ -77,14 +77,14 @@ function getAttachAxisSizeKeyframes(alignment: SmartAlignment): Keyframe[] {
   if (horizontal) {
     const origin = x < 0 ? 'right center' : 'left center';
     return [
-      { transform: 'scaleX(0)', opacity: 0.2, transformOrigin: origin },
-      { transform: 'scaleX(1)', opacity: 1, transformOrigin: origin },
+      { transform: 'scaleX(0)', transformOrigin: origin },
+      { transform: 'scaleX(1)', transformOrigin: origin },
     ];
   }
   const origin = y < 0 ? 'center bottom' : 'center top';
   return [
-    { transform: 'scaleY(0)', opacity: 0.2, transformOrigin: origin },
-    { transform: 'scaleY(1)', opacity: 1, transformOrigin: origin },
+    { transform: 'scaleY(0)', transformOrigin: origin },
+    { transform: 'scaleY(1)', transformOrigin: origin },
   ];
 }
 
@@ -99,12 +99,10 @@ function buildKeyframes(options: {
   const fadeFrames: Keyframe[] = [{ opacity: 0 }, { opacity: 1 }];
   const scaleFrames: Keyframe[] = [
     {
-      opacity: 0,
-      transform: 'scale(0.82)',
+      transform: 'scale(0)',
       transformOrigin: options.scaleOrigin ?? 'center center',
     },
     {
-      opacity: 1,
       transform: 'scale(1)',
       transformOrigin: options.scaleOrigin ?? 'center center',
     },
@@ -112,8 +110,8 @@ function buildKeyframes(options: {
   const slideFrames: Keyframe[] = options.isAttach
     ? getAttachAxisSizeKeyframes(options.alignment)
     : [
-        { opacity: 0, transform: getSlideTransform(options.alignment) },
-        { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+        { transform: getSlideTransform(options.alignment) },
+        { transform: 'translate3d(0, 0, 0)' },
       ];
 
   switch (options.animationType) {
@@ -142,7 +140,7 @@ async function runWebAnimation(
       direction === 'reverse' ? [...keyframes].reverse() : keyframes;
     const anim = element.animate(orderedFrames, {
       duration,
-      easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      easing: 'linear',
       fill: 'forwards',
     });
     activeAnimations.add(anim);

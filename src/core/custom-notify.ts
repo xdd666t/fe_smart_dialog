@@ -1,4 +1,10 @@
-import { CloseType, DialogType } from '../config/enums';
+import {
+  CloseType,
+  DialogType,
+  SmartInitType,
+  SmartStatus,
+} from '../config/enums';
+import { validateRuntimeDialogOptions } from '../config/validation';
 import { resolveDurationMs } from '../types/common';
 import type { SmartShowNotifyOptions } from '../types/params';
 import { DebounceUtils } from './debounce-utils';
@@ -13,6 +19,7 @@ export class CustomNotify {
     proxy: DialogProxy,
     options: SmartShowNotifyOptions,
   ): Promise<T | undefined> {
+    validateRuntimeDialogOptions('SmartDialog.showNotify', options);
     const config = proxy.config.notify;
     const debounce = options.debounce ?? config.debounce;
     if (DebounceUtils.instance.banContinue('notify', debounce)) {
@@ -58,7 +65,7 @@ export class CustomNotify {
           `fsd-notify-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
 
     if (!notifyInfo) {
-      const dialog = proxy.createMainDialog('notify');
+      const dialog = proxy.createMainDialog(SmartInitType.notify);
       notifyInfo = {
         dialog,
         tag: assignedTag,
@@ -80,7 +87,11 @@ export class CustomNotify {
         controller: options.controller,
         tag: assignedTag,
         dismiss: (res) =>
-          proxy.dismiss({ status: 'notify', tag: assignedTag, result: res }),
+          proxy.dismiss({
+            status: SmartStatus.notify,
+            tag: assignedTag,
+            result: res,
+          }),
       },
     });
 
@@ -129,7 +140,7 @@ export class CustomNotify {
           return;
         }
         void this.dismiss(proxy, {
-          closeType: 'mask',
+          closeType: CloseType.mask,
           tag: notifyInfo!.tag,
         });
       },
@@ -179,10 +190,10 @@ export class CustomNotify {
       closeType?: CloseType;
     } = {},
   ): Promise<void> {
-    const type = options.type ?? 'notify';
-    const closeType = options.closeType ?? 'normal';
+    const type = options.type ?? DialogType.notify;
+    const closeType = options.closeType ?? CloseType.normal;
 
-    if (type === 'notify') {
+    if (type === DialogType.notify) {
       const info = this.getDialog(proxy, options.tag);
       if (!info) return;
       await this.closeInfo(proxy, info, options.result, closeType);

@@ -1,4 +1,4 @@
-import { SmartStatus } from '../config/enums';
+import { CloseType, SmartStatus } from '../config/enums';
 import type { DialogInfo } from '../core/dialog-info';
 import type { DialogProxy } from '../core/dialog-proxy';
 import { RouteRecord } from '../core/route-record';
@@ -32,7 +32,7 @@ export class MonitorElementHelper {
       void proxy.dismiss({
         status: SmartStatus.dialog,
         tag: info.tag,
-        closeType: 'route',
+        closeType: CloseType.route,
       });
       return;
     }
@@ -47,7 +47,7 @@ export class MonitorElementHelper {
         void proxy.dismiss({
           status: SmartStatus.dialog,
           tag: info.tag,
-          closeType: 'route',
+          closeType: CloseType.route,
         });
         return;
       }

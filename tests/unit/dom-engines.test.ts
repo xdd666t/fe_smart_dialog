@@ -4,11 +4,12 @@ import {
   SmartDialog,
   SmartMaskTriggerType,
   SmartNonAnimationType,
+  SmartTheme,
 } from '../../src';
 
 describe('Web DOM Engines (Mask, Highlight, BindWidget, VisualViewport, Styles)', () => {
   it('auto-injects scoped CSS styles into document.head by default and honors theme/zIndexBase', () => {
-    SmartDialog.init({ theme: 'light', zIndexBase: 15000 });
+    SmartDialog.init({ theme: SmartTheme.light, zIndexBase: 15000 });
     const styleEl = document.head.querySelector('#fe-smart-dialog-styles');
     expect(styleEl).not.toBeNull();
     expect(styleEl?.textContent).toContain('.fsd-root');
@@ -240,5 +241,62 @@ describe('Web DOM Engines (Mask, Highlight, BindWidget, VisualViewport, Styles)'
 
     expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(SmartDialog.checkExist({ tag: 'panel-bound' })).toBe(false);
+  });
+
+  it('aligns default center-scale animation with Flutter (200ms, linear easing, scale 0 -> 1)', async () => {
+    const animateCalls: Array<{
+      keyframes: Keyframe[] | PropertyIndexedKeyframes | null;
+      options: number | KeyframeAnimationOptions | undefined;
+    }> = [];
+    const originalAnimate = HTMLElement.prototype.animate;
+    HTMLElement.prototype.animate = vi.fn(function (
+      this: HTMLElement,
+      keyframes: Keyframe[] | PropertyIndexedKeyframes | null,
+      options?: number | KeyframeAnimationOptions,
+    ) {
+      animateCalls.push({ keyframes, options });
+      const stub = {
+        onfinish: null as ((this: Animation, ev: AnimationPlaybackEvent) => void) | null,
+        oncancel: null as ((this: Animation, ev: AnimationPlaybackEvent) => void) | null,
+        cancel: vi.fn(),
+      } as unknown as Animation;
+      queueMicrotask(() => stub.onfinish?.call(stub, {} as AnimationPlaybackEvent));
+      return stub;
+    });
+
+    try {
+      void SmartDialog.show({ builder: () => 'Flutter Curve Check' });
+      expect(animateCalls.length).toBeGreaterThanOrEqual(2);
+      const bodyCall = animateCalls[1]!;
+      expect(bodyCall.options).toMatchObject({ duration: 200, easing: 'linear' });
+      expect(bodyCall.keyframes).toEqual([
+        { transform: 'scale(0)', transformOrigin: 'center center' },
+        { transform: 'scale(1)', transformOrigin: 'center center' },
+      ]);
+      await SmartDialog.dismiss({ force: true });
+    } finally {
+      HTMLElement.prototype.animate = originalAnimate;
+    }
+  });
+
+  it('rejects invalid HighlightRegion.shape enum strings at runtime', async () => {
+    const target = document.createElement('button');
+    document.body.appendChild(target);
+    await expect(
+      SmartDialog.showAttach({
+        targetContext: target,
+        useAnimation: false,
+        highlightBuilder: () => ({
+          left: 0,
+          top: 0,
+          width: 40,
+          height: 40,
+          shape: 'hexagon' as unknown as import('../../src').SmartHighlightShape,
+        }),
+        builder: () => 'Spotlight',
+      }),
+    ).rejects.toThrow(TypeError);
+    await SmartDialog.dismiss({ force: true });
+    target.remove();
   });
 });

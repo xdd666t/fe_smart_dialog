@@ -1,3 +1,5 @@
+import { SmartInitType, SmartStatus } from '../config/enums';
+import { validateRuntimeDialogOptions } from '../config/validation';
 import { resolveDurationMs } from '../types/common';
 import type { SmartShowToastOptions } from '../types/params';
 import { DebounceUtils } from './debounce-utils';
@@ -6,18 +8,19 @@ import { DialogScope } from './dialog-scope';
 import { ToastInfo, ToastTool } from './toast-tool';
 
 export class CustomToast {
-  static showToast(
+  static async showToast(
     proxy: DialogProxy,
     msg: string,
     options: SmartShowToastOptions = {},
   ): Promise<void> {
+    validateRuntimeDialogOptions('SmartDialog.showToast', options);
     const config = proxy.config.toast;
     const debounce = options.debounce ?? config.debounce;
     if (DebounceUtils.instance.banContinue('toast', debounce)) {
-      return Promise.resolve();
+      return;
     }
 
-    const mainDialog = proxy.createMainDialog('toast', {
+    const mainDialog = proxy.createMainDialog(SmartInitType.toast, {
       consumeEvent: options.consumeEvent ?? config.consumeEvent,
     });
 
@@ -27,7 +30,7 @@ export class CustomToast {
       builder,
       context: {
         controller: options.controller,
-        dismiss: () => proxy.dismiss({ status: 'toast' }),
+        dismiss: () => proxy.dismiss({ status: SmartStatus.toast }),
       },
     });
 
