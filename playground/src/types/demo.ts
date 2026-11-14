@@ -11,8 +11,16 @@ export interface DemoContext {
 }
 
 export interface DemoFrameworkSnippets {
+  vanilla?: string;
   react?: string;
   vue?: string;
+}
+
+export interface DemoParamDoc {
+  name: string;
+  type: string;
+  defaultVal?: string;
+  description: string;
 }
 
 export interface DemoEntry {
@@ -23,6 +31,9 @@ export interface DemoEntry {
   label: string;
   badge?: string;
   description: string;
+  summaryPoints?: string[];
+  keyParams?: DemoParamDoc[];
+  docPath?: string;
   code: string;
   frameworkSnippets?: DemoFrameworkSnippets;
   tags?: string[];

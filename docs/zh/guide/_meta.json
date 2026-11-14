@@ -1,0 +1,8 @@
+[
+  { "type": "file", "name": "getting-started", "label": "安装与快速开始" },
+  { "type": "file", "name": "frameworks", "label": "Vanilla TS / React / Vue" },
+  { "type": "file", "name": "concepts", "label": "架构与五层栈模型" },
+  { "type": "file", "name": "lifecycle-routing", "label": "页面绑定与路由生命周期" },
+  { "type": "file", "name": "theming-styling", "label": "主题与 CSS 变量" },
+  { "type": "file", "name": "migration-flutter", "label": "从 Flutter 迁移" }
+]

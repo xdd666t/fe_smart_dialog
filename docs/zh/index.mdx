@@ -1,0 +1,32 @@
+---
+pageType: home
+
+hero:
+  name: fe-smart-dialog
+  text: 优雅的零依赖前端全能弹窗方案
+  tagline: 完整复刻 flutter_smart_dialog 五层独立弹窗栈（Custom / Attach / Notify / Loading / Toast），原生支持 Vanilla TS、React 18/19、Vue 3 与 UMD CDN。
+  actions:
+    - theme: brand
+      text: 5 分钟快速开始
+      link: /guide/getting-started
+    - theme: alt
+      text: 查看 API 参考
+      link: /api/
+features:
+  - title: 五层独立 DOM / Stack 隔离
+    details: Toast > Loading > Notify > Attach > Custom 五层严格层级隔离，Loading 与 Custom 永不互相遮挡。
+    icon: 🧱
+  - title: 多框架一等公民支持
+    details: 同一套内核提供 Vanilla TS（含 html XSS helper）、React Provider + Hook 与 Vue 3 Plugin + Composable。
+    icon: ⚛️
+  - title: 智能锚点定位与聚光灯高亮
+    details: 精准贴靠目标元素或坐标，支持视口边缘自动翻转（adjustBuilder）与 SVG evenodd 新手引导挖空。
+    icon: 🎯
+  - title: 路由与元素生命周期自清理
+    details: bindPage 自动绑定 History 栈与后退拦截，bindWidget 通过 MutationObserver 随元素销毁自动收起弹窗。
+    icon: 🧭
+---
+
+import { HomeLiveDeck } from '../components/InteractiveDemos';
+
+<HomeLiveDeck />

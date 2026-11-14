@@ -1,0 +1,70 @@
+# Notify 通知、Loading 加载与 Toast 提示
+
+除了自由的 Custom 与 Attach 弹窗，`fe-smart-dialog` 内置了最高频的三组反馈层：**Notify**（第 3 层）、**Loading**（第 4 层）与 **Toast**（第 5 层）。它们永远独立位于业务弹窗之上，并自带防闪烁与队列调度机制。
+
+import { FeedbackSuiteCard } from '../../components/InteractiveDemos';
+import { ParamTable } from '../../components/ParamTable';
+
+<FeedbackSuiteCard />
+
+---
+
+## 1. Notify 语义通知 (`showNotify`)
+
+内置 5 种标准通知语义（对应 `NotifyType` 枚举）：
+- `NotifyType.success`
+- `NotifyType.failure`
+- `NotifyType.warning`
+- `NotifyType.alert`
+- `NotifyType.error`
+
+支持全局通过 `SmartDialog.init({ notifyStyle: new SmartNotifyStyle({ ... }) })` 按状态定制不同模板，也可在单次调用里传入 `builder` 完全自定义通知横幅或卡片。
+
+---
+
+## 2. Loading 全局加载锁 (`showLoading`)
+
+全局单例管理：连续两次调用 `showLoading()` 不会堆叠黑遮罩；调用 `SmartDialog.dismiss({ status: SmartStatus.loading })` 即可关闭。
+
+### 防闪烁保底时长 (`leastLoadingTime`)
+
+网络请求很快在 60ms 内返回时，Loading 一闪而过反而带来视觉抖动。通过设置 `leastLoadingTime`，即便你立刻调用了 `dismiss`，它也会优雅保底展示完指定最短时长再关闭：
+
+```ts
+SmartDialog.config.loading.leastLoadingTime = Duration.milliseconds(600);
+
+SmartDialog.showLoading({ msg: '正在保存...' });
+await saveProfile();
+await SmartDialog.dismiss({ status: SmartStatus.loading }); // await 会等待至少满足 600ms 才完全关闭
+```
+
+---
+
+## 3. Toast 轻提示 (`showToast`)
+
+支持极其简短的直接字符串调用 `SmartDialog.showToast('复制成功')`，也支持完整配置对象。
+
+### 四种队列展示策略 (`SmartToastType`)
+
+| 模式 | 行为机制 | 典型场景 |
+| --- | --- | --- |
+| `SmartToastType.normal` | FIFO 排队逐个完整播完 | 需要用户逐条看清的连续操作结果 |
+| `SmartToastType.last` | 立刻顶掉上一条并清空排队队列 | 搜索联想提示、高频点击反馈 |
+| `SmartToastType.onlyRefresh` | 不重播入场动画，原地更新文字并重置计时 | 音量/亮度调节滑块、进度反馈 |
+| `SmartToastType.multi` | 允许屏幕同时并发展示多条堆栈 Toast | 后台多任务同时完成的并行提示 |
+
+### 冷却防抖 (`intervalTime`) 与软键盘避让
+
+- **`SmartDialog.config.toast.intervalTime`**：设置相邻两条 Toast 之间的最小触发间隔，有效阻止按钮双击连弹相同提示。
+- **移动端 `VisualViewport` 自适应**：当软键盘弹出压缩可视视口时，默认顶部/底部 Toast 会自动参考 `window.visualViewport` 偏移避让，不会藏到输入法后面。
+
+<ParamTable
+  rows={[
+    { name: 'notifyType', type: 'NotifyType', descriptionZh: 'showNotify 必填语义：success / failure / warning / alert / error。', descriptionEn: 'Required semantic status for showNotify.' },
+    { name: 'leastLoadingTime', type: 'SmartDuration', defaultValue: '0', descriptionZh: '位于 config.loading：Loading 最短展示防闪烁保底时间。', descriptionEn: 'On config.loading: minimum visible duration before dismissing.' },
+    { name: 'displayType', type: 'SmartToastType', defaultValue: 'normal', descriptionZh: 'Toast 队列模式：normal / last / onlyRefresh / multi。', descriptionEn: 'Toast queue behavior: normal, last, onlyRefresh, multi.' },
+    { name: 'displayTime', type: 'SmartDuration', defaultValue: '2000ms', descriptionZh: 'Toast 或 Notify 自动关闭时长。', descriptionEn: 'Auto-dismiss display duration.' },
+    { name: 'intervalTime', type: 'SmartDuration', defaultValue: '0', descriptionZh: '位于 config.toast：两次 Toast 触发间最小防抖间隔。', descriptionEn: 'On config.toast: minimum interval throttling rapid consecutive toasts.' },
+    { name: 'debounce', type: 'boolean', defaultValue: 'false', descriptionZh: '防止短时间高频重复触发同一弹窗。', descriptionEn: 'Debounce rapid consecutive show invocations.' },
+  ]}
+/>

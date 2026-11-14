@@ -1,0 +1,64 @@
+# Attach 锚点定位与聚光灯引导
+
+`SmartDialog.showAttach(options)` 专为气泡提示、下拉菜单、上下文右键菜单与多步新手引导而生：它能精准测量目标元素位置，沿边缘自动对齐，配合 SVG `evenodd` 实现顺滑的区域挖空聚光灯。
+
+import {
+  AttachPopoverPlayground,
+  SpotlightGuideCard,
+} from '../../components/InteractiveDemos';
+import { ParamTable } from '../../components/ParamTable';
+
+<AttachPopoverPlayground />
+
+---
+
+## 1. 目标指定方式 (`targetElement` vs `targetBuilder`)
+
+- **绑定已有元素**：传入 `targetElement`（或 `targetContext`），支持 `HTMLElement`、CSS 选择器、React/Vue `Ref` 或返回元素的 getter 函数。
+- **任意坐标锚点 (`targetBuilder`)**：在右键菜单或屏幕角落悬浮场景，无需真实锚点 DOM，直接计算返回视口坐标 `new Offset(x, y)` 即可：
+
+```ts
+import { Alignment, Offset, SmartDialog } from 'fe-smart-dialog';
+
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  SmartDialog.showAttach({
+    targetBuilder: () => new Offset(e.clientX, e.clientY),
+    alignment: Alignment.bottomRight,
+    builder: ({ dismiss }) => contextMenuElement,
+  });
+});
+```
+
+---
+
+## 2. 边界对齐与视口自适应翻转 (`adjustBuilder`)
+
+在全局配置中配合 `SmartDialog.config.attach.attachAlignmentType` 可切换相对目标边框的对齐锚线：`outside`（外缘对齐）、`center`（居中）或 `inside`（内缘对齐）。
+
+如果气泡靠近屏幕边界容易被裁切，实现 `adjustBuilder(attachParam)` 即可根据 `selfOffset`、`selfSize`、`targetOffset` 和 `window.innerHeight` 返回新的 `new AttachAdjustParam({ alignment, builder })` 自动翻转方向；搭配 `scalePointBuilder(selfSize)` 还能把缩放入场原点精确锁定在气泡箭头尖端！
+
+---
+
+## 3. 新手引导聚光灯 (`highlightBuilder`)
+
+`highlightBuilder(targetOffset, targetSize)` 只需返回一个 `HighlightRegion`（矩形或圆形坐标描述），内核自动生成 SVG `fill-rule="evenodd"` 遮罩，完美高亮目标控件，甚至支持引导步骤接力：
+
+<SpotlightGuideCard />
+
+---
+
+## 核心参数表
+
+<ParamTable
+  rows={[
+    { name: 'targetElement / targetContext', type: 'SmartTargetRef', descriptionZh: '目标元素（DOM、CSS 选择器、Ref 或 getter 函数）。', descriptionEn: 'Anchor target element, selector, Ref, or getter.' },
+    { name: 'targetBuilder', type: '(offset, size) => SmartOffset', descriptionZh: '自定义绝对坐标锚点（如右键菜单鼠标位置）。', descriptionEn: 'Custom coordinate anchor builder (e.g. pointer coordinates).' },
+    { name: 'alignment', type: 'Alignment', defaultValue: 'Alignment.bottomCenter', descriptionZh: '气泡相对于目标锚点的方向（如 topCenter / bottomLeft / centerRight）。', descriptionEn: 'Popover placement side relative to anchor.' },
+    { name: 'config.attach.attachAlignmentType', type: 'SmartAttachAlignmentType', defaultValue: 'center', descriptionZh: '气泡边缘对齐基准：outside / center / inside。', descriptionEn: 'Edge alignment mode: outside, center, or inside.' },
+    { name: 'adjustBuilder', type: '(param) => AttachAdjustParam', descriptionZh: '动态修正最终 left/top，避免气泡超出屏幕边界。', descriptionEn: 'Adjust final offset when close to viewport bounds.' },
+    { name: 'scalePointBuilder', type: '(selfSize) => SmartOffset', descriptionZh: '自定义缩放 animation 的 transform-origin 原点。', descriptionEn: 'Customize scale transform origin for attached popover.' },
+    { name: 'highlightBuilder', type: '(offset, size) => HighlightRegion | HTMLElement', descriptionZh: '聚光灯挖空高亮区域（支持 SmartHighlightShape.rect | circle）。', descriptionEn: 'Spotlight mask cutout region (rect or circle SVG evenodd).' },
+    { name: 'maskIgnoreArea', type: 'SmartRect', descriptionZh: '定义遮罩内仍允许用户穿透点击的矩形区域。', descriptionEn: 'Click-through rect cutout within backdrop mask.' },
+  ]}
+/>

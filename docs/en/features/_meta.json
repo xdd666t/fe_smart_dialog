@@ -1,0 +1,5 @@
+[
+  { "type": "file", "name": "custom-dialog", "label": "Custom Dialog & System Modal" },
+  { "type": "file", "name": "attach-spotlight", "label": "Attach & Spotlight Guide" },
+  { "type": "file", "name": "toast-loading-notify", "label": "Notify / Loading / Toast" }
+]

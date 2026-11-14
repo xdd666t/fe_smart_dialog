@@ -1,0 +1,8 @@
+[
+  { "type": "file", "name": "getting-started", "label": "Installation & Quick Start" },
+  { "type": "file", "name": "frameworks", "label": "Vanilla TS / React / Vue" },
+  { "type": "file", "name": "concepts", "label": "Architecture & Layer Stack" },
+  { "type": "file", "name": "lifecycle-routing", "label": "Lifecycle & History Binding" },
+  { "type": "file", "name": "theming-styling", "label": "Theming & CSS Tokens" },
+  { "type": "file", "name": "migration-flutter", "label": "Migrate from Flutter" }
+]

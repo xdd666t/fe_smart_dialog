@@ -1,0 +1,93 @@
+# 页面绑定、路由观测与返回拦截
+
+单页应用（SPA）中最常见的问题是：用户在表单弹窗打开期间点击浏览器后退按钮，或者路由发生了跳转，弹窗却仍然悬浮在新页面上；反之，有时又希望确认弹窗随组件卸载一起自动销毁。
+
+`fe-smart-dialog` 提供三套互补机制解决上述问题：
+
+import { LifecycleBindCard } from '../../components/InteractiveDemos';
+
+<LifecycleBindCard />
+
+---
+
+## 1. 元素生命周期绑定 (`bindWidget` / `bindElement`)
+
+将弹窗绑定到某个宿主 DOM 元素（或 React/Vue Ref）：
+- **DOM 移除监听 (`MutationObserver`)**：只要宿主元素从文档流卸载，关联弹窗会自动关闭并释放资源。
+- **可见性感知 (`IntersectionObserver`)**：若锚点容器隐藏或移出局部视野时可同步安全处理。
+
+```ts
+// Vanilla TS
+SmartDialog.show({
+  bindWidget: document.querySelector('#order-card'),
+  builder: ({ dismiss }) => panelElement,
+});
+
+// React / Vue Hook
+const cardRef = useBindWidget<HTMLDivElement>();
+smartDialog.show({
+  bindWidget: cardRef,
+  builder: ({ dismiss }) => <OrderDrawer onClose={dismiss} />,
+});
+```
+
+---
+
+## 2. 路由页面绑定 (`bindPage` & `SmartDialog.observer`)
+
+### 自动追踪模式（默认开启）
+
+在默认配置下（`SmartDialog.init({ autoTrackHistory: true })`），库内部自动拦截并监听 `history.pushState`、`history.replaceState`、`popstate` 和 `hashchange`。
+
+开启 `bindPage: true` 后（Custom / Attach / Loading 默认即为 `true`）：
+- 在页面 A 弹出的弹窗只属于页面 A；
+- 当跳转到页面 B 时，页面 A 的弹窗会被**安全隐藏 / 冻结**，不会遮挡页面 B；
+- 当用户从页面 B 返回页面 A 时，页面 A 的弹窗会无缝恢复。
+
+### 显式路由集成 (`SmartDialog.observer`)
+
+如果你希望将路由状态机精准接入 Vue Router / React Router，可直接驱动 `SmartDialog.observer`：
+
+```ts
+import { SmartDialog } from 'fe-smart-dialog';
+
+// 示例：Vue Router 导航守卫
+router.afterEach((to, from) => {
+  SmartDialog.observer.didPush(to.fullPath, from.fullPath);
+});
+```
+
+也支持 `didReplace({ newRoute, oldRoute })`、`didPop(route, previousRoute)`、`didRemove(route)`。
+
+---
+
+## 3. 返回事件与 `Esc` 拦截策略 (`backType` & `onBack`)
+
+通过 `backType` 精确控制按 `Esc` 键或浏览器返回键时的行为：
+
+| `SmartBackType` | 行为说明 |
+| --- | --- |
+| `SmartBackType.normal` | （默认）拦截返回/Esc 事件并关闭当前弹窗 |
+| `SmartBackType.block` | 拦截返回/Esc 事件，**不关闭**弹窗（常用于强制更新提示 / 支付等待） |
+| `SmartBackType.ignore` | 不做拦截，让返回/Esc 事件继续向外冒泡或执行页面默认行为 |
+
+如需在触发返回时执行自定义校验逻辑，传入 `onBack`（返回 `false` 可阻止关闭）：
+
+```ts
+SmartDialog.show({
+  backType: SmartBackType.normal,
+  onBack: async () => {
+    const canLeave = await confirmDiscardDraft();
+    return canLeave; // 返回 false 阻止本次关闭
+  },
+  builder: ...
+});
+```
+
+若需要**拦截浏览器物理返回按钮**，在初始化时开启 history sentinel：
+
+```ts
+SmartDialog.init({
+  enableHistoryBack: true,
+});
+```

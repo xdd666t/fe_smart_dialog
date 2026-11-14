@@ -1,0 +1,61 @@
+# 从 `flutter_smart_dialog` 迁移指南
+
+如果你熟悉 Flutter 社区的 `flutter_smart_dialog`，几乎可以**零心智负担**直接上手 `fe-smart-dialog`：从五层结构、枚举命名、几何类到 `show` / `showAttach` / `showNotify` / `showLoading` / `showToast` 签名都保持了极高的一致性。
+
+## 核心概念与类型对照表
+
+| 能力维度 | `flutter_smart_dialog` (Dart) | `fe-smart-dialog` (TS / Web) | 差异与 Web 增强说明 |
+| --- | --- | --- | --- |
+| 初始化与入口包裹 | `FlutterSmartDialog.init()` | 默认开箱即用；可选 `SmartDialog.init()` | React/Vue 推荐额外挂载 `SmartDialogProvider` / `SmartDialogPlugin` |
+| 对齐模型 | `Alignment.center` / `Alignment(x, y)` | `Alignment.center` / `new Alignment(x, y)` | 坐标系完全一致：`(-1, -1)` 左上角到 `(1, 1)` 右下角 |
+| 时长对象 | `Duration(milliseconds: 300)` | `Duration.milliseconds(300)` 或直接传 `300` | Web 同时兼容纯毫秒数字与 `Duration` 实例 |
+| 坐标 / 矩形 | `Offset` / `Size` / `Rect` | `new Offset(x, y)` / `Size` / `Rect` | 也支持 `{ x, y }`、`{ width, height }` 等字面量 |
+| 构建函数 | `builder: (context) => Widget` | `builder: ({ dismiss }) => content` | 直接注入 `dismiss(result)` 回调；无需查找 context |
+| Anchor 目标绑定 | `targetContext: BuildContext` | `targetElement` / `targetContext` | 支持 `HTMLElement`、CSS 选择器、React/Vue `Ref` 或函数 getter |
+| 高亮镂空引导 | `highlightBuilder: (offset, size) => Widget` | `highlightBuilder` 返回 `HighlightRegion` 或 `HTMLElement` | 基于 SVG `evenodd` 实现完美矩形/圆形抗锯齿挖空 |
+| 视图生命周期绑定 | `bindWidget: BuildContext` | `bindWidget` / `bindElement` | 基于 `MutationObserver` 自动感知元素卸载清理 |
+| 路由绑定与监听 | `SmartDialog.observer` + `bindPage` | 内置 History 自动监听 + `SmartDialog.observer` + `bindPage` | 即使不用第三方 Router 也能自动隔离页面历史栈 |
+| 返回拦截 | Android 系统返回键 | 浏览器 `Esc` 键 + 可选 `enableHistoryBack` 拦截后退 | 通过 `SmartBackType.normal \| block \| ignore` 统一控制 |
+
+## 代码对比示例
+
+### Flutter 原写法 vs Web TS 写法
+
+```dart
+// Flutter
+SmartDialog.showAttach(
+  targetContext: context,
+  alignment: Alignment.bottomCenter,
+  highlightBuilder: (Offset targetOffset, Size targetSize) {
+    return Positioned(
+      left: targetOffset.dx - 4,
+      top: targetOffset.dy - 4,
+      child: Container(width: targetSize.width + 8, height: targetSize.height + 8),
+    );
+  },
+  builder: (_) => const MyGuideCard(),
+);
+```
+
+```ts
+// Web (fe-smart-dialog)
+SmartDialog.showAttach({
+  targetElement: '#guide-anchor',
+  alignment: Alignment.bottomCenter,
+  highlightBuilder: (targetOffset, targetSize) => ({
+    left: targetOffset.dx - 4,
+    top: targetOffset.dy - 4,
+    width: targetSize.width + 8,
+    height: targetSize.height + 8,
+    borderRadius: 10,
+    shape: SmartHighlightShape.rect,
+  }),
+  builder: ({ dismiss }) => guideCardElement,
+});
+```
+
+## 原生 Web 专属增强特性
+
+- **`useSystem: true`**：基于浏览器原生 `<dialog>.showModal()` Top Layer 渲染，无视任何祖先元素 `overflow: hidden` 或极高 `z-index` 层叠上下文，并自带原生焦点陷阱与焦点恢复。
+- **`VisualViewport` 键盘避让**：移动端软键盘弹出时，Toast 自动读取 `window.visualViewport` 调整位置，防止被输入法遮盖。
+- **CSS 变量皮肤体系**：通过 `--fsd-*` 定制一切内置风格，无需为了微调颜色或圆角重写整个 `builder`。

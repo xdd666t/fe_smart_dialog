@@ -1,4 +1,4 @@
-name: Deploy Playground to GitHub Pages
+name: Deploy Docs & Playground to GitHub Pages
 
 on:
   push:
@@ -28,15 +28,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Playground for GitHub Pages
+      - name: Build Docs & Playground for GitHub Pages
         env:
-          VITE_BASE: /fe_smart_dialog/
-        run: npm run build:playground
+          SITE_BASE: /fe_smart_dialog/
+        run: npm run build:site
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: playground/dist
+          path: site-dist
 
   deploy:
     needs: build

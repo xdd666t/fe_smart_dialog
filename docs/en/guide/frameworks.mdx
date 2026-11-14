@@ -1,0 +1,144 @@
+# Vanilla TS, React & Vue Integrations
+
+`fe-smart-dialog` uses a framework-agnostic adapter core: overlay orchestration, animations, backdrop triggers, and positioning share one core engine while rendering Vanilla DOM, `DocumentFragment`, React JSX, or Vue 3 VNodes.
+
+import { FrameworkBridgeCard } from '../../components/InteractiveDemos';
+
+<FrameworkBridgeCard />
+
+---
+
+## Vanilla TS / JavaScript
+
+The base `fe-smart-dialog` entry works in any browser app with zero framework dependencies. Use the bundled `html` tagged template helper so interpolated `${...}` values are automatically HTML-escaped against XSS:
+
+```ts
+import { Alignment, SmartDialog, html } from 'fe-smart-dialog';
+
+const confirmed = await SmartDialog.show<boolean>({
+  alignment: Alignment.center,
+  builder: ({ dismiss }) => {
+    const title = 'Delete Item';
+    const targetName = '<script>alert(1)</script>'; // Safely escaped automatically
+
+    const frag = html`
+      <div class="my-dialog">
+        <h3>${title}</h3>
+        <p>Remove <strong>${targetName}</strong> permanently?</p>
+        <div class="actions">
+          <button data-btn="cancel">Cancel</button>
+          <button data-btn="ok">Confirm</button>
+        </div>
+      </div>
+    `;
+
+    frag.querySelector('[data-btn="cancel"]')?.addEventListener('click', () => dismiss(false));
+    frag.querySelector('[data-btn="ok"]')?.addEventListener('click', () => dismiss(true));
+    return frag;
+  },
+});
+```
+
+---
+
+## React 18 / 19
+
+Wrap your root tree once with `<SmartDialogProvider>` from `fe-smart-dialog/react` so dialogs mount via React Portals and inherit Theme, Router, and Store Contexts.
+
+```tsx
+import { SmartTheme } from 'fe-smart-dialog';
+import {
+  SmartDialogProvider,
+  useBindWidget,
+  useSmartDialog,
+  useSmartDialogController,
+} from 'fe-smart-dialog/react';
+
+export function AppRoot() {
+  return (
+    <SmartDialogProvider theme={SmartTheme.auto}>
+      <PageContent />
+    </SmartDialogProvider>
+  );
+}
+
+function PageContent() {
+  const smartDialog = useSmartDialog();
+  const hostRef = useBindWidget<HTMLDivElement>();
+  const controller = useSmartDialogController();
+
+  const openModal = async () => {
+    const res = await smartDialog.show<string>({
+      controller,
+      bindWidget: hostRef, // Auto-dismisses if this component unmounts
+      builder: ({ dismiss }) => (
+        <div className="modal-card">
+          <h4>React Portal Dialog</h4>
+          <button onClick={() => dismiss('saved')}>Save & Close</button>
+        </div>
+      ),
+    });
+    console.log('Dialog result:', res);
+  };
+
+  return (
+    <div ref={hostRef}>
+      <button onClick={openModal}>Open Modal</button>
+    </div>
+  );
+}
+```
+
+### React Exports Summary
+
+| Export | Purpose |
+| --- | --- |
+| `SmartDialogProvider` | Renders dialog contents into React Portals under your context tree |
+| `ReactSmartDialog` | Static facade typed for `ReactNode` builders |
+| `useSmartDialog()` | Returns `ReactSmartDialog` inside components |
+| `useSmartDialogController()` | Memoized `SmartDialogController` for `controller.refresh()` |
+| `useBindWidget<T>()` | Typed `RefObject<T>` compatible with `bindWidget` and `targetElement` |
+
+---
+
+## Vue 3
+
+Install `SmartDialogPlugin` from `fe-smart-dialog/vue` on your Vue app instance (or nest `<SmartDialogProvider>` anywhere) so VNodes inherit Pinia, Vue Router, and `provide/inject`.
+
+```ts
+// main.ts
+import { createApp } from 'vue';
+import { SmartDialogPlugin } from 'fe-smart-dialog/vue';
+import App from './App.vue';
+
+const app = createApp(App);
+app.use(SmartDialogPlugin);
+app.mount('#app');
+```
+
+Inside `<script setup>`:
+
+```ts
+import { h } from 'vue';
+import { useBindWidget, useSmartDialog, useSmartDialogController } from 'fe-smart-dialog/vue';
+
+const smartDialog = useSmartDialog();
+const anchorRef = useBindWidget<HTMLElement>();
+const controller = useSmartDialogController();
+
+async function openConfirm() {
+  const ok = await smartDialog.show<boolean>({
+    controller,
+    bindWidget: anchorRef,
+    builder: ({ dismiss }) =>
+      h('div', { class: 'vue-modal' }, [
+        h('h4', 'Vue 3 Teleport Modal'),
+        h('button', { onClick: () => dismiss(true) }, 'Confirm'),
+      ]),
+  });
+  console.log('Result:', ok);
+}
+```
+
+> [!NOTE]
+> Options API components also receive `$smartDialog` globally when `SmartDialogPlugin` is installed. See full declarations in [Vue API](/en/api/modules/vue).

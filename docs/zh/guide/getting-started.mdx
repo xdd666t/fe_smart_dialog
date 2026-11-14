@@ -1,0 +1,67 @@
+# 安装与快速开始
+
+`fe-smart-dialog` 是一个零运行时依赖的前端弹窗套件，将 `flutter_smart_dialog` 久经验证的 **五层独立弹窗栈**、**函数式调用返回值** 与 **锚点定位引导** 完整带到 Web 端。
+
+## 1. 安装依赖
+
+```bash
+npm install fe-smart-dialog
+# 或使用 pnpm / yarn / bun
+pnpm add fe-smart-dialog
+yarn add fe-smart-dialog
+```
+
+如果你不使用打包器（如静态 HTML 页或低代码平台），也可以直接通过 UMD CDN 引入：
+
+```html
+<script src="https://unpkg.com/fe-smart-dialog/dist/index.global.js"></script>
+<script>
+  const { SmartDialog, Alignment, SmartStatus } = window.FeSmartDialog;
+  SmartDialog.showToast('Hello from CDN!');
+</script>
+```
+
+## 2. 样式引入（自动注入 vs 手动 CSS）
+
+默认情况下，`fe-smart-dialog` 会在首次调用任意弹窗时**自动将内置 scoped 样式注入 `document.head`**，因此开箱即可运行，无需单独 `import` CSS。
+
+如果你的项目启用了严格的 **CSP（禁止内联 `<style>`）**、或需要自行控制 CSS 加载顺序 / SSR 打包体积，可以在应用启动时禁用自动注入，改为显式引入样式表：
+
+```ts
+import 'fe-smart-dialog/style.css';
+import { SmartDialog } from 'fe-smart-dialog';
+
+SmartDialog.init({
+  injectStyles: false,
+});
+```
+
+## 3. 全局初始化（可选）
+
+如果只使用默认外观，`SmartDialog` **无需调用 `init()` 即可直接使用**。当需要统一设置主题、自定义全局 Loading / Toast / Notify 模板、或微前端挂载容器时，在应用入口调用一次 `SmartDialog.init()`：
+
+```ts
+import { SmartDialog, SmartTheme } from 'fe-smart-dialog';
+
+SmartDialog.init({
+  theme: SmartTheme.auto,       // 'auto' | 'light' | 'dark'
+  zIndexBase: 9999,             // 5 层遮罩起始 z-index
+  autoTrackHistory: true,       // 自动监听 pushState/popstate/hashchange 实现 bindPage 清理
+  enableHistoryBack: false,     // 如需浏览器物理返回键优先关闭弹窗，设为 true
+});
+```
+
+> [!TIP]
+> 在 React 或 Vue 项目中，建议优先使用 `SmartDialogProvider`（React）或 `SmartDialogPlugin`（Vue）传入初始化配置，从而天然共享组件树中的 Context / `provide/inject`、路由与国际化状态。查看 [框架集成指南](./frameworks)。
+
+## 4. 实景体验：第一个带返回值的弹窗
+
+import { QuickStartCard } from '../../components/InteractiveDemos';
+
+<QuickStartCard />
+
+## 下一步推荐
+
+- 在 React / Vue / Vanilla 项目中正确接入：[Vanilla TS / React / Vue 集成](./frameworks)
+- 理解 5 层叠放顺序与 `tag` 栈管理：[架构与五层栈模型](./concepts)
+- 深入学习每一类弹窗：`Custom` / `Attach` / `Notify` / `Loading` / `Toast`

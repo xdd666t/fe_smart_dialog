@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   Layers,
   Menu,
   Monitor,
@@ -9,6 +10,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { getDocsHref } from '../utils/docsUrl';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 
@@ -140,6 +142,15 @@ export function Topbar({
             );
           })}
         </div>
+
+        <a
+          href={getDocsHref()}
+          data-testid="topbar-docs-link"
+          className="hidden sm:inline-flex h-8 items-center gap-1.5 rounded-lg border border-indigo-500/35 bg-indigo-500/10 px-2.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 transition-colors hover:bg-indigo-500/20"
+        >
+          <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>文档 &amp; API</span>
+        </a>
 
         <a
           href="https://github.com/xdd666t/fe_smart_dialog"

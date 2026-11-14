@@ -29,8 +29,10 @@ jobs:
       - name: Build library & styles
         run: npm run build
 
-      - name: Build playground
-        run: npm run build:playground
+      - name: Build combined site (docs + playground)
+        env:
+          SITE_BASE: /fe_smart_dialog/
+        run: npm run build:site
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium

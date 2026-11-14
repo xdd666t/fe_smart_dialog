@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".."
+  },
+  "include": [
+    "../src/types/css.d.ts",
+    "./rspress.config.ts",
+    "./components/**/*.ts",
+    "./components/**/*.tsx",
+    "./theme/**/*.tsx"
+  ]
+}

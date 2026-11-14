@@ -1,0 +1,219 @@
+.fsd-nav-workbench-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--rp-c-brand);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.fsd-nav-workbench-pill:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--rp-c-brand);
+}
+
+.fsd-nav-workbench-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #10b981;
+}
+
+/* Live Demo Card & Showcase Helpers */
+.fsd-demo-card {
+  margin: 20px 0 28px;
+  border: 1px solid var(--rp-c-divider-light);
+  border-radius: 14px;
+  background: var(--rp-c-bg-soft);
+  overflow: hidden;
+  box-shadow: 0 6px 24px -12px rgba(15, 23, 42, 0.14);
+}
+
+.dark .fsd-demo-card {
+  box-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.5);
+}
+
+.fsd-demo-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--rp-c-divider-light);
+  background: var(--rp-c-bg);
+}
+
+.fsd-demo-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rp-c-text-1);
+}
+
+.fsd-demo-desc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--rp-c-text-2);
+  line-height: 1.5;
+}
+
+.fsd-demo-stage {
+  padding: 20px 18px;
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.06), transparent 60%),
+    var(--rp-c-bg-soft);
+  border-bottom: 1px solid var(--rp-c-divider-light);
+}
+
+.fsd-demo-knobs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px 14px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--rp-c-divider-light);
+  background: var(--rp-c-bg);
+  font-size: 12.5px;
+}
+
+.fsd-knob-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fsd-knob-label {
+  font-weight: 600;
+  color: var(--rp-c-text-2);
+}
+
+.fsd-knob-select,
+.fsd-knob-input {
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 7px;
+  border: 1px solid var(--rp-c-divider-light);
+  background: var(--rp-c-bg-soft);
+  color: var(--rp-c-text-1);
+  font-size: 12.5px;
+}
+
+.fsd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--rp-c-divider-light);
+  background: var(--rp-c-bg);
+  color: var(--rp-c-text-1);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.fsd-btn:hover {
+  border-color: var(--rp-c-brand);
+  color: var(--rp-c-brand);
+}
+
+.fsd-btn--primary {
+  background: var(--rp-c-brand);
+  border-color: var(--rp-c-brand);
+  color: #ffffff;
+}
+
+.fsd-btn--primary:hover {
+  color: #ffffff;
+  filter: brightness(1.06);
+}
+
+.fsd-btn--subtle {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.fsd-demo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--rp-c-bg);
+}
+
+.fsd-demo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fsd-tab-btn {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--rp-c-text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fsd-tab-btn.is-active {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: var(--rp-c-brand);
+}
+
+.fsd-demo-code {
+  margin: 0;
+  padding: 14px 18px;
+  overflow-x: auto;
+  border-top: 1px solid var(--rp-c-divider-light);
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+
+.fsd-demo-log {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px dashed var(--rp-c-divider-light);
+  background: var(--rp-c-bg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--rp-c-text-2);
+}
+
+.fsd-home-deck {
+  max-width: 1120px;
+  margin: 12px auto 32px;
+  padding: 22px;
+  border-radius: 16px;
+  border: 1px solid var(--rp-c-divider-light);
+  background: var(--rp-c-bg-soft);
+}
+
+.fsd-target-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}

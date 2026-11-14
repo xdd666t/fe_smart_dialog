@@ -1,0 +1,64 @@
+# Attach Popovers & Spotlight Tours
+
+`SmartDialog.showAttach(options)` powers anchored tooltips, dropdowns, coordinate context menus, and SVG `evenodd` onboarding spotlights.
+
+import {
+  AttachPopoverPlayground,
+  SpotlightGuideCard,
+} from '../../components/InteractiveDemos';
+import { ParamTable } from '../../components/ParamTable';
+
+<AttachPopoverPlayground />
+
+---
+
+## 1. Anchor Targets (`targetElement` vs `targetBuilder`)
+
+- **Element Anchor**: Pass `targetElement` (or `targetContext`) as an `HTMLElement`, selector string, React/Vue `Ref`, or getter function.
+- **Coordinate Anchor (`targetBuilder`)**: Return explicit viewport `new Offset(x, y)` coordinates (ideal for right-click context menus):
+
+```ts
+import { Alignment, Offset, SmartDialog } from 'fe-smart-dialog';
+
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  SmartDialog.showAttach({
+    targetBuilder: () => new Offset(e.clientX, e.clientY),
+    alignment: Alignment.bottomRight,
+    builder: ({ dismiss }) => contextMenuElement,
+  });
+});
+```
+
+---
+
+## 2. Edge Alignment & Auto Flip (`adjustBuilder`)
+
+Configure `SmartDialog.config.attach.attachAlignmentType` (`outside` | `center` | `inside`) to align popover edges against the anchor rectangle.
+
+Supply `adjustBuilder(param)` to inspect `selfOffset`, `selfSize`, `targetOffset`, and viewport dimensions and return `new AttachAdjustParam({ alignment, builder })` when flipping near edges; combine with `scalePointBuilder(selfSize)` to anchor zoom transforms to your arrow tip.
+
+---
+
+## 3. Onboarding Spotlight Cutouts (`highlightBuilder`)
+
+Return a `HighlightRegion` (`SmartHighlightShape.rect` or `SmartHighlightShape.circle`) from `highlightBuilder` to carve an SVG `evenodd` spotlight aperture directly through the dimmed backdrop:
+
+<SpotlightGuideCard />
+
+---
+
+## Options Reference
+
+<ParamTable
+  rows={[
+    { name: 'targetElement / targetContext', type: 'SmartTargetRef', descriptionZh: '目标元素。', descriptionEn: 'Anchor target element, selector, Ref, or getter.' },
+    { name: 'targetBuilder', type: '(offset, size) => SmartOffset', descriptionZh: '坐标锚点。', descriptionEn: 'Custom coordinate anchor builder (e.g. pointer coordinates).' },
+    { name: 'alignment', type: 'Alignment', defaultValue: 'Alignment.bottomCenter', descriptionZh: '贴靠方向。', descriptionEn: 'Popover placement side relative to anchor.' },
+    { name: 'config.attach.attachAlignmentType', type: 'SmartAttachAlignmentType', defaultValue: 'center', descriptionZh: '边缘对齐。', descriptionEn: 'Edge alignment mode: outside, center, or inside.' },
+    { name: 'adjustBuilder', type: '(param) => AttachAdjustParam', descriptionZh: '溢出翻转。', descriptionEn: 'Adjust final offset when close to viewport bounds.' },
+    { name: 'scalePointBuilder', type: '(selfSize) => SmartOffset', descriptionZh: '缩放原点。', descriptionEn: 'Customize scale transform origin for attached popover.' },
+    { name: 'highlightBuilder', type: '(offset, size) => HighlightRegion | HTMLElement', descriptionZh: '聚光灯挖空。', descriptionEn: 'Spotlight mask cutout region (rect or circle SVG evenodd).' },
+    { name: 'maskIgnoreArea', type: 'SmartRect', descriptionZh: '穿透矩形。', descriptionEn: 'Click-through rect cutout within backdrop mask.' },
+  ]}
+/>

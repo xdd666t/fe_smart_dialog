@@ -10,7 +10,9 @@ import {
 } from 'fe-smart-dialog';
 import {
   ArrowDown,
+  ArrowUpRight,
   Bell,
+  BookOpen,
   Check,
   Compass,
   Copy,
@@ -22,6 +24,7 @@ import {
   Terminal,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { getDocsHref } from '../utils/docsUrl';
 import { CodeBlock } from './CodeBlock';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -367,6 +370,32 @@ const confirmed = await SmartDialog.show<boolean>({
               <span>Explore 37 Demos</span>
               <ArrowDown className="h-4 w-4" aria-hidden="true" />
             </Button>
+
+            <a
+              href={getDocsHref('guide/getting-started')}
+              data-testid="hero-docs-link"
+              className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-indigo-500/35 bg-indigo-500/10 px-4 text-sm font-medium text-indigo-600 dark:text-indigo-400 transition-colors hover:bg-indigo-500/20"
+            >
+              <BookOpen className="h-4 w-4" aria-hidden="true" />
+              <span>快速接入文档</span>
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--pg-muted)]">
+            <span>自动注入样式 · 零配置即用 · 多端支持：</span>
+            <a href={getDocsHref('guide/frameworks')} className="underline hover:text-[var(--pg-text)]">
+              Vanilla TS
+            </a>
+            <a href={getDocsHref('guide/frameworks')} className="underline hover:text-[var(--pg-text)]">
+              React Provider
+            </a>
+            <a href={getDocsHref('guide/frameworks')} className="underline hover:text-[var(--pg-text)]">
+              Vue 3 Plugin
+            </a>
+            <a href={getDocsHref('api/')} className="underline hover:text-[var(--pg-text)]">
+              TypeDoc API
+            </a>
           </div>
         </div>
 

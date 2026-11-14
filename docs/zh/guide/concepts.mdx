@@ -1,0 +1,66 @@
+# 架构与五层弹窗栈模型
+
+传统组件库弹窗往往共享同一个全局 `z-index` 自增计数：一旦先弹了一个全屏弹窗，接着触发的全局 Loading、错误通知或 Toast 很容易被后发弹窗盖住。
+
+`fe-smart-dialog` 继承自 `flutter_smart_dialog`，按语义划分为 **5 个物理隔离的图层容器**：
+
+```
+┌────────────────────────────────────────┐  最高层 (zIndexBase + 4000)
+│ 5. Toast 轻提示层（队列 / 并发管理）    │
+├────────────────────────────────────────┤  zIndexBase + 3000
+│ 4. Loading 加载层（单例防闪烁）         │
+├────────────────────────────────────────┤  zIndexBase + 2000
+│ 3. Notify 通知层（多条 / 语义样式）     │
+├────────────────────────────────────────┤  zIndexBase + 1000
+│ 2. Attach 锚点浮层（定位 / 聚光灯挖空） │
+├────────────────────────────────────────┤  最底层 (zIndexBase + 0)
+│ 1. Custom 自定义弹窗层（多实例栈）      │
+└────────────────────────────────────────┘
+```
+
+## 层级核心机制
+
+### 1. 智能关闭优先级 (`SmartDialog.dismiss()`)
+
+不传 `status` 调用 `SmartDialog.dismiss()` 时，默认使用 `SmartStatus.smart` 策略，按如下确定性顺序每次关闭最顶层合适实例：
+
+1. 如果 **Loading** 正在显示 -> 优先关闭 Loading；
+2. 否则如果 **Notify** 正在显示 -> 关闭最新的 Notify；
+3. 否则关闭 **Custom / Attach** 栈顶最晚打开的那个非 `permanent` 弹窗。
+
+如需精准操作某一类弹窗，传入对应 `SmartStatus`：
+
+| `SmartStatus` 枚举值 | 语义 |
+| --- | --- |
+| `SmartStatus.smart` | 默认智能关闭：`loading` -> `notify` -> 栈顶 `custom`/`attach` |
+| `SmartStatus.custom` / `allCustom` | 关闭栈顶 / 全部 Custom 弹窗 |
+| `SmartStatus.attach` / `allAttach` | 关闭栈顶 / 全部 Attach 弹窗 |
+| `SmartStatus.dialog` / `allDialog` | 关闭栈顶 / 全部 Custom + Attach |
+| `SmartStatus.notify` / `allNotify` | 关闭栈顶 / 全部 Notify |
+| `SmartStatus.loading` | 关闭 Loading 单例 |
+| `SmartStatus.toast` / `allToast` | 关闭当前或清空全部等待队列中的 Toast |
+
+### 2. `tag` 定点堆栈控制
+
+打开多层级联弹窗时，给每一层分配 `tag`，即可随时越级关闭任意中间层而不破坏其余弹窗；也可用 `SmartDialog.checkExist({ tag })` 查询某弹窗是否存活。
+
+### 3. `keepSingle` 同位复用 vs 多例压栈
+
+- `keepSingle: false`（默认）：每次 `show` 都压入新实例。
+- `keepSingle: true`：如果已有 `keepSingle` 实例存在，会直接复用其容器刷新内容而不销毁重建或叠加黑罩。
+
+### 4. `permanent` 常驻保护锁
+
+设置 `permanent: true` 后，普通 `SmartDialog.dismiss()`、点击遮罩（除非显式处理）与 Esc 返回都无法误关该弹窗，必须显式传入 `{ tag }` 或 `{ force: true }` 才能强行拆除。
+
+import { ConceptsLayerCard } from '../../components/InteractiveDemos';
+
+<ConceptsLayerCard />
+
+### 5. `await SmartDialog.show*()` 的完成时机 (`awaitOverType`)
+
+所有 `show*` 方法均返回 `Promise<T | undefined>`。默认 `awaitOverType: SmartAwaitOverType.dialogDismiss`，即在**弹窗完全关闭并完成退场动画后** `resolve`（可安全拿回 `dismiss(result)` 回传的业务结果）。
+
+你也可以按需配置：
+- `SmartAwaitOverType.dialogAppear`：进场动画完成后立即 `resolve`。
+- `SmartAwaitOverType.none`：触发后约 10ms 立即 `resolve`（用于顺序连弹而不阻塞当前流程）。

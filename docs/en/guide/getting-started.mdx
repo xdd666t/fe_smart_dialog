@@ -1,0 +1,67 @@
+# Installation & Quick Start
+
+`fe-smart-dialog` is a zero-runtime-dependency dialog suite that brings `flutter_smart_dialog`'s battle-tested **5-layer stack**, **async return values**, and **anchor spotlight tutorials** natively to the Web.
+
+## 1. Install
+
+```bash
+npm install fe-smart-dialog
+# or pnpm / yarn / bun
+pnpm add fe-smart-dialog
+yarn add fe-smart-dialog
+```
+
+For zero-build static pages, load the UMD bundle directly:
+
+```html
+<script src="https://unpkg.com/fe-smart-dialog/dist/index.global.js"></script>
+<script>
+  const { SmartDialog, Alignment, SmartStatus } = window.FeSmartDialog;
+  SmartDialog.showToast('Hello from CDN!');
+</script>
+```
+
+## 2. CSS Setup (Auto-Injection vs Explicit Import)
+
+By default, `fe-smart-dialog` **automatically injects scoped default styles into `document.head`** on first use, so it works out of the box with zero extra imports.
+
+If your app enforces strict **CSP rules blocking inline `<style>` tags** or you prefer explicit CSS bundling, disable auto-injection and import `fe-smart-dialog/style.css` once at entry:
+
+```ts
+import 'fe-smart-dialog/style.css';
+import { SmartDialog } from 'fe-smart-dialog';
+
+SmartDialog.init({
+  injectStyles: false,
+});
+```
+
+## 3. Global Initialization (Optional)
+
+You can call `SmartDialog.show*` immediately without calling `init()`. When you need a custom theme, global Toast/Loading/Notify builders, or micro-frontend isolation, call `SmartDialog.init()` once at startup:
+
+```ts
+import { SmartDialog, SmartTheme } from 'fe-smart-dialog';
+
+SmartDialog.init({
+  theme: SmartTheme.auto,       // 'auto' | 'light' | 'dark'
+  zIndexBase: 9999,             // Base z-index for the 5 overlay layers
+  autoTrackHistory: true,       // Track pushState/popstate/hashchange for bindPage
+  enableHistoryBack: false,     // Intercept browser hardware/UI back button first
+});
+```
+
+> [!TIP]
+> In React or Vue apps, prefer configuring via `SmartDialogProvider` (React) or `SmartDialogPlugin` (Vue) so dialogs automatically inherit Context / `provide/inject`, routing, and i18n providers. See [Framework Integrations](/en/guide/frameworks).
+
+## 4. Try It Live: Your First Async Dialog
+
+import { QuickStartCard } from '../../components/InteractiveDemos';
+
+<QuickStartCard />
+
+## Next Steps
+
+- Integrate with Vanilla TS, React 18/19, or Vue 3: [Framework Integrations](/en/guide/frameworks)
+- Learn how the 5-layer stack works: [Architecture & Layer Stack](/en/guide/concepts)
+- Explore Custom Modals, Attach Popovers, and Toast/Loading/Notify tutorials in Features.

@@ -1,0 +1,59 @@
+# Migrating from `flutter_smart_dialog`
+
+Developers familiar with Flutter's `flutter_smart_dialog` will recognize nearly identical layer semantics, enum names, geometry helpers, and `show*` signatures.
+
+## Concept & API Comparison
+
+| Feature | `flutter_smart_dialog` (Dart) | `fe-smart-dialog` (TS / Web) | Web Notes |
+| --- | --- | --- | --- |
+| Init & Provider | `FlutterSmartDialog.init()` | Optional `SmartDialog.init()` | Use `SmartDialogProvider` (React) or `SmartDialogPlugin` (Vue) to share framework contexts |
+| Alignment | `Alignment.center` / `Alignment(x, y)` | `Alignment.center` / `new Alignment(x, y)` | Identical normalized `[-1, 1]` coordinates |
+| Duration | `Duration(milliseconds: 300)` | `Duration.milliseconds(300)` or `300` | Plain millisecond numbers also accepted |
+| Geometry | `Offset` / `Size` / `Rect` | `new Offset(x, y)` / `Size` / `Rect` | Object literals like `{ x, y }` work anywhere |
+| Builders | `builder: (context) => Widget` | `builder: ({ dismiss }) => content` | Built-in `dismiss(result)` argument |
+| Anchor Target | `targetContext: BuildContext` | `targetElement` / `targetContext` | Accepts `HTMLElement`, CSS selector, Ref, or getter |
+| Spotlight Mask | `highlightBuilder: (offset, size) => Widget` | Return `HighlightRegion` or `HTMLElement` | Rendered as crisp SVG `fill-rule="evenodd"` cutout |
+| Widget Binding | `bindWidget: BuildContext` | `bindWidget` / `bindElement` | Uses `MutationObserver` on target DOM node |
+| Route Observer | `SmartDialog.observer` + `bindPage` | Auto History tracking + `SmartDialog.observer` | Works automatically even without router glue code |
+| Back Interception | Android system back | Escape key + optional `enableHistoryBack` | Unified via `SmartBackType.normal \| block \| ignore` |
+
+## Side-by-Side Example
+
+```dart
+// Flutter
+SmartDialog.showAttach(
+  targetContext: context,
+  alignment: Alignment.bottomCenter,
+  highlightBuilder: (Offset targetOffset, Size targetSize) {
+    return Positioned(
+      left: targetOffset.dx - 4,
+      top: targetOffset.dy - 4,
+      child: Container(width: targetSize.width + 8, height: targetSize.height + 8),
+    );
+  },
+  builder: (_) => const MyGuideCard(),
+);
+```
+
+```ts
+// Web (fe-smart-dialog)
+SmartDialog.showAttach({
+  targetElement: '#guide-anchor',
+  alignment: Alignment.bottomCenter,
+  highlightBuilder: (targetOffset, targetSize) => ({
+    left: targetOffset.dx - 4,
+    top: targetOffset.dy - 4,
+    width: targetSize.width + 8,
+    height: targetSize.height + 8,
+    borderRadius: 10,
+    shape: SmartHighlightShape.rect,
+  }),
+  builder: ({ dismiss }) => guideCardElement,
+});
+```
+
+## Web-Specific Enhancements
+
+- **`useSystem: true`**: Renders inside native browser `<dialog>.showModal()` Top Layer so dialogs escape ancestor `overflow: hidden` / stacking contexts automatically.
+- **`VisualViewport` Keyboard Avoidance**: Adjusts bottom/top Toasts cleanly when mobile virtual keyboards open.
+- **CSS Variables**: Instant light/dark/custom skinning with `--fsd-*` tokens.

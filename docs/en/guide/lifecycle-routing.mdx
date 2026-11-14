@@ -1,0 +1,75 @@
+# Lifecycle, Route Binding & Back Interception
+
+In Single-Page Applications, dialogs often outlive the page or widget that triggered them, or get left floating after users hit Browser Back. `fe-smart-dialog` prevents orphaned overlays via three complementary mechanisms:
+
+import { LifecycleBindCard } from '../../components/InteractiveDemos';
+
+<LifecycleBindCard />
+
+---
+
+## 1. Element Lifecycle Binding (`bindWidget` / `bindElement`)
+
+Bind a dialog to a host DOM element or React/Vue Ref:
+- **DOM Removal Cleanup (`MutationObserver`)**: When the bound element unmounts, its associated dialog dismisses automatically.
+- **Visibility Tracking (`IntersectionObserver`)**: Keeps lifecycle coupled to mounted host regions.
+
+```ts
+SmartDialog.show({
+  bindWidget: document.querySelector('#order-card'),
+  builder: ({ dismiss }) => panelElement,
+});
+
+// Or with React / Vue hooks:
+const cardRef = useBindWidget<HTMLDivElement>();
+smartDialog.show({ bindWidget: cardRef, builder: ... });
+```
+
+---
+
+## 2. Route Page Binding (`bindPage` & `SmartDialog.observer`)
+
+### Automatic History Tracking (Default On)
+
+With `SmartDialog.init({ autoTrackHistory: true })`, the library observes `history.pushState`, `history.replaceState`, `popstate`, and `hashchange`.
+
+When `bindPage: true` (default for Custom / Attach / Loading):
+- Dialogs opened on Route A are scoped to Route A;
+- Navigating to Route B safely hides Route A's dialogs without losing their state;
+- Navigating back to Route A restores them seamlessly.
+
+### Explicit Router Observer (`SmartDialog.observer`)
+
+For explicit router synchronization with React Router or Vue Router, drive `SmartDialog.observer`:
+
+```ts
+import { SmartDialog } from 'fe-smart-dialog';
+
+router.afterEach((to, from) => {
+  SmartDialog.observer.didPush(to.fullPath, from.fullPath);
+});
+```
+
+Methods supported: `didPush`, `didReplace`, `didPop`, `didRemove`.
+
+---
+
+## 3. Escape / Back Handling (`backType` & `onBack`)
+
+| `SmartBackType` | Behavior |
+| --- | --- |
+| `SmartBackType.normal` | Default: intercepts Escape/Back and closes the top dialog |
+| `SmartBackType.block` | Intercepts Escape/Back **without dismissing** (e.g. mandatory notice) |
+| `SmartBackType.ignore` | Ignores Escape/Back and lets the event propagate normally |
+
+Return `false` from `onBack` to conditionally prevent dismissal:
+
+```ts
+SmartDialog.show({
+  backType: SmartBackType.normal,
+  onBack: async () => await confirmDiscardChanges(),
+  builder: ...
+});
+```
+
+To intercept browser Back navigation before route changes occur, enable `enableHistoryBack: true` in `SmartDialog.init()`.

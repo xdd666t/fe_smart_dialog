@@ -1,0 +1,63 @@
+# Notify, Loading & Toast
+
+Alongside custom dialogs and attach popovers, `fe-smart-dialog` includes dedicated top-priority feedback layers: **Notify** (Layer 3), **Loading** (Layer 4), and **Toast** (Layer 5).
+
+import { FeedbackSuiteCard } from '../../components/InteractiveDemos';
+import { ParamTable } from '../../components/ParamTable';
+
+<FeedbackSuiteCard />
+
+---
+
+## 1. Semantic Notifications (`showNotify`)
+
+Includes five semantic variants via `NotifyType`:
+- `NotifyType.success`
+- `NotifyType.failure`
+- `NotifyType.warning`
+- `NotifyType.alert`
+- `NotifyType.error`
+
+Customize globally via `SmartDialog.init({ notifyStyle: new SmartNotifyStyle({ ... }) })` or pass a per-call `builder`.
+
+---
+
+## 2. Anti-Flicker Singleton Loading (`showLoading`)
+
+Only one active loading overlay exists at a time. Call `SmartDialog.dismiss({ status: SmartStatus.loading })` to close it.
+
+Configure `SmartDialog.config.loading.leastLoadingTime` so sub-100ms API responses hold the spinner cleanly for a minimum duration instead of flashing awkwardly:
+
+```ts
+SmartDialog.config.loading.leastLoadingTime = Duration.milliseconds(600);
+
+SmartDialog.showLoading({ msg: 'Saving...' });
+await saveProfile();
+await SmartDialog.dismiss({ status: SmartStatus.loading });
+```
+
+---
+
+## 3. Toast Queue Modes (`showToast`)
+
+Call concisely with a string (`SmartDialog.showToast('Copied')`) or full `SmartShowToastObjectOptions`.
+
+| `SmartToastType` | Behavior | Ideal Use Case |
+| --- | --- | --- |
+| `SmartToastType.normal` | Sequential FIFO queue | Sequential action confirmations users must read |
+| `SmartToastType.last` | Replaces current toast & drops backlog | Rapid search/typing feedback |
+| `SmartToastType.onlyRefresh` | Updates text & timer in place without re-animating | Volume sliders, live counters |
+| `SmartToastType.multi` | Stacks multiple active toasts concurrently | Background job completions |
+
+Also supports **`SmartDialog.config.toast.intervalTime`** to throttle rapid double-taps, and **`VisualViewport`** positioning to stay above mobile virtual keyboards.
+
+<ParamTable
+  rows={[
+    { name: 'notifyType', type: 'NotifyType', descriptionZh: '通知类型。', descriptionEn: 'Required semantic status for showNotify.' },
+    { name: 'leastLoadingTime', type: 'SmartDuration', defaultValue: '0', descriptionZh: '最短加载时间。', descriptionEn: 'On config.loading: minimum visible duration before dismissing.' },
+    { name: 'displayType', type: 'SmartToastType', defaultValue: 'normal', descriptionZh: '队列模式。', descriptionEn: 'Toast queue behavior: normal, last, onlyRefresh, multi.' },
+    { name: 'displayTime', type: 'SmartDuration', defaultValue: '2000ms', descriptionZh: '展示时长。', descriptionEn: 'Auto-dismiss display duration.' },
+    { name: 'intervalTime', type: 'SmartDuration', defaultValue: '0', descriptionZh: '防抖间隔。', descriptionEn: 'On config.toast: minimum interval throttling rapid consecutive toasts.' },
+    { name: 'debounce', type: 'boolean', defaultValue: 'false', descriptionZh: '调用防抖。', descriptionEn: 'Debounce rapid consecutive show invocations.' },
+  ]}
+/>

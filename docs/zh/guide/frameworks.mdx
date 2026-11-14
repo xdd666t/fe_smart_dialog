@@ -1,0 +1,146 @@
+# 多框架集成指南
+
+`fe-smart-dialog` 内部采用适配器（Adapter）架构，内核仅负责栈状态机、动画时序、遮罩调度与几何定位；具体弹窗内容可以无缝渲染原生 DOM、`DocumentFragment`、React JSX 或 Vue 3 VNode。
+
+import { FrameworkBridgeCard } from '../../components/InteractiveDemos';
+
+<FrameworkBridgeCard />
+
+---
+
+## Vanilla TS / 原生 JS
+
+核心入口 `fe-smart-dialog` 完全不依赖任何 UI 框架。推荐配合内置的 `html` 标签模板 helper 构建弹窗，所有 `${...}` 插值会自动做 HTML 实体转义，天然防 XSS 注入：
+
+```ts
+import { Alignment, SmartDialog, html } from 'fe-smart-dialog';
+
+const confirmed = await SmartDialog.show<boolean>({
+  alignment: Alignment.center,
+  builder: ({ dismiss }) => {
+    const title = '删除确认';
+    const targetName = '<script>alert(1)</script>'; // 自动转义为纯文本
+
+    const frag = html`
+      <div class="my-dialog">
+        <h3>${title}</h3>
+        <p>确定移除项目 <strong>${targetName}</strong> 吗？</p>
+        <div class="actions">
+          <button data-btn="cancel">取消</button>
+          <button data-btn="ok">确认删除</button>
+        </div>
+      </div>
+    `;
+
+    frag.querySelector('[data-btn="cancel"]')?.addEventListener('click', () => dismiss(false));
+    frag.querySelector('[data-btn="ok"]')?.addEventListener('click', () => dismiss(true));
+    return frag;
+  },
+});
+```
+
+---
+
+## React 18 / 19
+
+通过 `fe-smart-dialog/react` 在根组件挂载 `<SmartDialogProvider>`，弹窗内部即可使用 React Hooks、Redux/Zustand Store、React Router 以及 ThemeContext。
+
+```tsx
+import { SmartTheme } from 'fe-smart-dialog';
+import {
+  SmartDialogProvider,
+  useBindWidget,
+  useSmartDialog,
+  useSmartDialogController,
+} from 'fe-smart-dialog/react';
+
+export function AppRoot() {
+  return (
+    <SmartDialogProvider theme={SmartTheme.auto}>
+      <PageContent />
+    </SmartDialogProvider>
+  );
+}
+
+function PageContent() {
+  const smartDialog = useSmartDialog();
+  const hostRef = useBindWidget<HTMLDivElement>();
+  const controller = useSmartDialogController();
+
+  const openModal = async () => {
+    const res = await smartDialog.show<string>({
+      controller,
+      bindWidget: hostRef, // 当 hostRef 组件卸载时自动关闭弹窗
+      builder: ({ dismiss }) => (
+        <div className="modal-card">
+          <h4>React Portal Dialog</h4>
+          <button onClick={() => dismiss('saved')}>保存并关闭</button>
+        </div>
+      ),
+    });
+    console.log('Dialog result:', res);
+  };
+
+  return (
+    <div ref={hostRef}>
+      <button onClick={openModal}>打开弹窗</button>
+    </div>
+  );
+}
+```
+
+### React 入口导出清单
+
+| 导出项 | 用途说明 |
+| --- | --- |
+| `SmartDialogProvider` | 通过 React Portal 挂载弹窗节点，继承组件树上下文 |
+| `ReactSmartDialog` | 带 `ReactNode` 类型约束的静态门面（与 `useSmartDialog()` 返回值相同） |
+| `useSmartDialog()` | 组件内获取类型安全的弹窗门面 |
+| `useSmartDialogController()` | 稳定的 `SmartDialogController` 实例，支持 `controller.refresh()` |
+| `useBindWidget<T>()` | 返回稳定 `RefObject<T>`，搭配 `bindWidget` / `targetElement` |
+
+---
+
+## Vue 3
+
+通过 `fe-smart-dialog/vue` 在 `app` 安装 `SmartDialogPlugin`（或在子树嵌套 `<SmartDialogProvider>`），弹窗组件会继承 Pinia、Vue Router 与 `provide/inject` 依赖注入。
+
+```ts
+// main.ts
+import { createApp } from 'vue';
+import { SmartDialogPlugin } from 'fe-smart-dialog/vue';
+import App from './App.vue';
+
+const app = createApp(App);
+app.use(SmartDialogPlugin, {
+  // 可选 SmartInitOptions<VNodeChild>
+});
+app.mount('#app');
+```
+
+在 `<script setup>` 中直接通过组合式 API 调用：
+
+```ts
+import { h } from 'vue';
+import { useBindWidget, useSmartDialog, useSmartDialogController } from 'fe-smart-dialog/vue';
+
+const smartDialog = useSmartDialog();
+const anchorRef = useBindWidget<HTMLElement>();
+const controller = useSmartDialogController();
+
+async function openConfirm() {
+  const ok = await smartDialog.show<boolean>({
+    controller,
+    bindWidget: anchorRef,
+    builder: ({ dismiss }) =>
+      h('div', { class: 'vue-modal' }, [
+        h('h4', 'Vue 3 Teleport Modal'),
+        h('button', { onClick: () => dismiss(true) }, '确认'),
+      ]),
+  });
+  console.log('Result:', ok);
+}
+```
+
+> [!NOTE]
+> 在 Vue 模板选项式写法中，安装 `SmartDialogPlugin` 后也可直接使用全局属性 `this.$smartDialog`。查看完整类型定义：[Vue API](/api/modules/vue)。

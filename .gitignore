@@ -4,5 +4,9 @@ coverage/
 test-results/
 playwright-report/
 playground/dist/
+docs/doc_build/
+docs/zh/api/
+docs/en/api/
+site-dist/
 .DS_Store
 *.log

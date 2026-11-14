@@ -1,0 +1,82 @@
+# 主题适配、CSS 变量与容器隔离
+
+`fe-smart-dialog` 的内置 Toast、Loading 与 Notify 组件全部采用原生 **Scoped CSS** 与 **`--fsd-*` CSS 变量** 构建，无需引入 Tailwind 即可轻松换肤与适配深浅色模式。
+
+import { ThemeTokenCard } from '../../components/InteractiveDemos';
+import { ParamTable } from '../../components/ParamTable';
+
+<ThemeTokenCard />
+
+---
+
+## 1. 浅色 / 深色模式 (`SmartTheme`)
+
+通过 `SmartDialog.init({ theme })` 切换主题策略（也可以在你的站点主题切换器里动态再次调用 `SmartDialog.init({ theme })`）：
+
+- `SmartTheme.auto`（默认）：根据系统 `prefers-color-scheme: dark` 以及常见根节点标记（如 `.dark`、`[data-theme="dark"]`）自动识别明暗主题。
+- `SmartTheme.light`：强制使用浅色内置组件外观。
+- `SmartTheme.dark`：强制使用深色内置组件外观。
+
+---
+
+## 2. CSS 变量全量参考 (`--fsd-*`)
+
+直接在 `:root` 或自定义容器元素上覆盖以下变量即可实时改变内置 Toast / Loading / Notify 的视觉表现：
+
+<ParamTable
+  rows={[
+    { name: '--fsd-bg', type: 'color / background', defaultValue: 'adaptive', descriptionZh: '内置卡片背景色', descriptionEn: 'Default widget surface background color' },
+    { name: '--fsd-text', type: 'color', defaultValue: 'adaptive', descriptionZh: '内置卡片主文字色', descriptionEn: 'Default widget primary foreground text color' },
+    { name: '--fsd-border', type: 'CSS border / color', defaultValue: 'adaptive', descriptionZh: '卡片描边样式', descriptionEn: 'Border color/rule for built-in toast/notify cards' },
+    { name: '--fsd-shadow', type: 'CSS box-shadow', defaultValue: 'adaptive', descriptionZh: '卡片立体阴影', descriptionEn: 'Box shadow for default overlays' },
+    { name: '--fsd-font', type: 'font-family', defaultValue: 'system-ui', descriptionZh: '内置卡片字体栈', descriptionEn: 'Font stack for default widgets' },
+    { name: '--fsd-radius', type: 'length', defaultValue: 'inherit', descriptionZh: '通用基础圆角', descriptionEn: 'Base corner radius fallback' },
+    { name: '--fsd-toast-radius', type: 'length', defaultValue: '10px', descriptionZh: '默认 Toast 气泡圆角', descriptionEn: 'Toast pill corner radius' },
+    { name: '--fsd-loading-radius', type: 'length', defaultValue: '12px', descriptionZh: '默认 Loading 卡片圆角', descriptionEn: 'Loading container corner radius' },
+    { name: '--fsd-notify-radius', type: 'length', defaultValue: '12px', descriptionZh: '默认 Notify 横幅圆角', descriptionEn: 'Notify card corner radius' },
+    { name: '--fsd-success', type: 'color', defaultValue: '#10b981', descriptionZh: 'Notify success 强调色', descriptionEn: 'Accent color for NotifyType.success' },
+    { name: '--fsd-failure', type: 'color', defaultValue: '#ef4444', descriptionZh: 'Notify failure 强调色', descriptionEn: 'Accent color for NotifyType.failure' },
+    { name: '--fsd-warning', type: 'color', defaultValue: '#f59e0b', descriptionZh: 'Notify warning 强调色', descriptionEn: 'Accent color for NotifyType.warning' },
+    { name: '--fsd-alert', type: 'color', defaultValue: '#3b82f6', descriptionZh: 'Notify alert 强调色', descriptionEn: 'Accent color for NotifyType.alert' },
+    { name: '--fsd-error', type: 'color', defaultValue: '#dc2626', descriptionZh: 'Notify error 强调色', descriptionEn: 'Accent color for NotifyType.error' },
+  ]}
+/>
+
+---
+
+## 3. 全局自定义 UI 工厂 (`init` builders)
+
+如果你希望完全替换默认 Toast、Loading、Notify 甚至所有弹窗外框，在 `SmartDialog.init()`（或 `<SmartDialogProvider>`）中传入全局构造器即可：
+
+```ts
+import { SmartDialog, SmartNotifyStyle, html } from 'fe-smart-dialog';
+
+SmartDialog.init({
+  toastBuilder: (msg) => html`<div class="my-toast">${msg}</div>`,
+  loadingBuilder: (msg) => html`<div class="my-spinner">${msg}</div>`,
+  notifyStyle: new SmartNotifyStyle({
+    successBuilder: (msg) => html`<div class="banner ok">${msg}</div>`,
+    errorBuilder: (msg) => html`<div class="banner err">${msg}</div>`,
+  }),
+  // 类似 Flutter SmartInitType.custom 统一包裹每层 Custom Dialog
+  styleBuilder: (child) => {
+    const wrapper = document.createElement('section');
+    wrapper.className = 'brand-dialog-shell';
+    wrapper.appendChild(child);
+    return wrapper;
+  },
+});
+```
+
+---
+
+## 4. 微前端 / 多实例容器与层级控制
+
+在 qiankun、iframe 或嵌套预览窗口内使用时，可通过 `container` 将 5 层容器限制到指定 DOM 节点内部，同时自定义 `zIndexBase`：
+
+```ts
+SmartDialog.init({
+  container: '#sub-app-root', // CSS 选择器或 HTMLElement
+  zIndexBase: 20000,          // 默认为 9999
+});
+```

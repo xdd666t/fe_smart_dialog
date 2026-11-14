@@ -1,0 +1,5 @@
+[
+  { "type": "file", "name": "custom-dialog", "label": "Custom 与原生顶层弹窗" },
+  { "type": "file", "name": "attach-spotlight", "label": "Attach 锚点与聚光灯引导" },
+  { "type": "file", "name": "toast-loading-notify", "label": "Notify / Loading / Toast" }
+]

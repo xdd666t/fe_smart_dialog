@@ -1,0 +1,107 @@
+# Custom 自定义弹窗与原生顶层模态框
+
+`SmartDialog.show<T>(options)` 是最核心的自定义弹窗入口，适用于确认对话框、侧边抽屉、底部 ActionSheet、复杂表单乃至无遮罩悬浮工具栏。
+
+import {
+  CustomDialogPlayground,
+  CustomPenetrateDemo,
+  ParamRefreshDemo,
+} from '../../components/InteractiveDemos';
+import { ParamTable } from '../../components/ParamTable';
+
+<CustomDialogPlayground />
+
+---
+
+## 1. 对齐定位与动画 (`Alignment` & `SmartAnimationType`)
+
+支持完整的 9 个标准方位常量以及 `new Alignment(x, y)` 任意归一化坐标（`x, y ∈ [-1, 1]`）：
+
+- 顶部 / 底部抽屉：`Alignment.topCenter` / `Alignment.bottomCenter`
+- 左右侧边栏：`Alignment.centerLeft` / `Alignment.centerRight`
+- 四角浮窗：`topLeft` / `topRight` / `bottomLeft` / `bottomRight`
+
+四种内置动画 `SmartAnimationType` 会随方位智能切换滑入方向：
+- `centerScale_otherSlide`（默认）：居中时弹性缩放，贴边时从对应边缘平滑滑入。
+- `centerFade_otherSlide`：居中淡入淡出，贴边从对应边缘滑入。
+- `scale` / `fade`：全方位统一缩放或淡入淡出。
+
+你也可以传入 `animationBuilder` 完全接管 Web Animations API / CSS 动效：
+
+```ts
+SmartDialog.show({
+  animationTime: Duration.milliseconds(260),
+  animationBuilder: (_controller, child, animationParam) => {
+    animationParam.onForward = () => {
+      child.animate(
+        [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }],
+        { duration: animationParam.animationTime, fill: 'forwards' },
+      );
+    };
+    animationParam.onDismiss = () => {
+      child.animate(
+        [{ opacity: 1 }, { opacity: 0, transform: 'translateY(16px)' }],
+        { duration: animationParam.animationTime, fill: 'forwards' },
+      );
+    };
+    return child;
+  },
+  builder: ...
+});
+```
+
+---
+
+## 2. 穿透交互与遮罩定制 (`usePenetrate` & `maskTriggerType`)
+
+- **`usePenetrate: true`**：遮罩层本身设置为透明不拦截点击，底层页面的列表滚动与按钮点击完全正常响应。
+- **`ignoreArea`**：即使在非穿透遮罩模式下，也可以挖出可点击透传的安全矩形。
+- **`config.custom.maskTriggerType`**：精确决定点击遮罩是在 `up`（松手，默认）、`down`（按下瞬间）还是 `move` 时触发关闭。
+
+<CustomPenetrateDemo />
+
+---
+
+## 3. 原生顶层 `<dialog>.showModal()` 模式 (`useSystem`)
+
+设置 `useSystem: true` 后，弹窗内容将被托管至浏览器原生的 `<dialog>` Top Layer，拥有以下优势：
+1. **彻底穿透任意局部 `z-index` 与 `overflow: hidden`**，永远处于浏览器视口最顶层；
+2. 原生支持 `Tab` 焦点锁定与关闭后焦点自动回溯到触发按钮；
+3. 原生支持 `Esc` 键关闭（并与 `backType` 集成）。
+
+```ts
+const submitted = await SmartDialog.show<{ email: string }>({
+  useSystem: true,
+  ariaLabel: '订阅设置',
+  builder: ({ dismiss }) => subscriptionFormElement,
+});
+```
+
+---
+
+## 4. `SmartDialogController` 原地刷新与 `useBindWidget`
+
+当你想在表单分步、倒计时或异步加载切换时保留同一弹窗实例，无需关闭重开：创建并传入 `SmartDialogController` 调用 `controller.refresh()` 即可原地刷新 `builder`：
+
+<ParamRefreshDemo />
+
+---
+
+## 核心参数表
+
+<ParamTable
+  rows={[
+    { name: 'builder', type: '({ dismiss }) => SmartContent', descriptionZh: '必填。返回 DOM 元素、DocumentFragment、HTML 或 React/Vue 节点。', descriptionEn: 'Required builder returning DOM node, Fragment, JSX, or VNode.' },
+    { name: 'alignment', type: 'Alignment', defaultValue: 'Alignment.center', descriptionZh: '支持 9 宫格预设与 new Alignment(x, y) 自定义方位。', descriptionEn: '9 presets or custom Alignment(x, y) in [-1, 1].' },
+    { name: 'animationType', type: 'SmartAnimationType', defaultValue: 'centerScale_otherSlide', descriptionZh: '内置过渡动画预设。', descriptionEn: 'Built-in enter/exit animation mode.' },
+    { name: 'clickMaskDismiss', type: 'boolean', defaultValue: 'true', descriptionZh: '点击遮罩空白处是否自动关闭弹窗。', descriptionEn: 'Dismiss when clicking backdrop mask.' },
+    { name: 'usePenetrate', type: 'boolean', defaultValue: 'false', descriptionZh: '遮罩是否穿透鼠标与触摸事件到底层页面。', descriptionEn: 'Allow pointer events to pass through the backdrop.' },
+    { name: 'useSystem', type: 'boolean', defaultValue: 'false', descriptionZh: '是否使用原生 <dialog>.showModal() Top Layer 渲染。', descriptionEn: 'Render inside native <dialog>.showModal() Top Layer.' },
+    { name: 'keepSingle', type: 'boolean', defaultValue: 'false', descriptionZh: '是否复用现有同位实例而不叠放多个弹窗。', descriptionEn: 'Reuse active keepSingle instance instead of stacking.' },
+    { name: 'permanent', type: 'boolean', defaultValue: 'false', descriptionZh: '常驻锁，防止普通 dismiss() 误关。', descriptionEn: 'Lock modal against regular dismiss() unless tag or force: true.' },
+    { name: 'tag', type: 'string', descriptionZh: '唯一标识，搭配 dismiss({ tag }) 或 checkExist({ tag })。', descriptionEn: 'Unique tag for targeted dismiss and existence checks.' },
+    { name: 'displayTime', type: 'SmartDuration | null', descriptionZh: '定时自动关闭时间。', descriptionEn: 'Auto-dismiss timeout duration.' },
+    { name: 'trapFocus', type: 'boolean', defaultValue: 'true', descriptionZh: '非穿透弹窗内自动约束 Tab 键盘焦点。', descriptionEn: 'Trap Tab navigation inside modal when active.' },
+    { name: 'lockScroll', type: 'boolean', descriptionZh: '弹窗打开时锁定底层页面滚动。', descriptionEn: 'Lock background scroll while visible.' },
+  ]}
+/>

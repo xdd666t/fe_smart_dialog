@@ -1,0 +1,6 @@
+[
+  { "type": "file", "name": "index", "label": "首页" },
+  { "type": "dir", "name": "guide", "label": "使用指南" },
+  { "type": "dir", "name": "features", "label": "核心能力" },
+  { "type": "dir", "name": "api", "label": "API 参考" }
+]

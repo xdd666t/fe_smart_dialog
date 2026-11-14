@@ -1,0 +1,62 @@
+# Architecture & Five-Layer Stack
+
+Traditional dialog libraries share a single incrementing `z-index`, causing global loading indicators or toast confirmations to hide behind fullscreen custom modals.
+
+`fe-smart-dialog` strictly separates overlays into **5 isolated DOM layers**, matching `flutter_smart_dialog`:
+
+```
+┌────────────────────────────────────────┐  Highest (zIndexBase + 4000)
+│ 5. Toast Layer (FIFO / Replace / Multi) │
+├────────────────────────────────────────┤  zIndexBase + 3000
+│ 4. Loading Layer (Singleton Anti-Flick)│
+├────────────────────────────────────────┤  zIndexBase + 2000
+│ 3. Notify Layer (Semantic Banners)     │
+├────────────────────────────────────────┤  zIndexBase + 1000
+│ 2. Attach Layer (Anchored & Spotlight) │
+├────────────────────────────────────────┤  Lowest (zIndexBase + 0)
+│ 1. Custom Layer (Stacked Dialogs)      │
+└────────────────────────────────────────┘
+```
+
+## Core Stack Mechanics
+
+### 1. Deterministic Close Priority (`SmartDialog.dismiss()`)
+
+Calling `SmartDialog.dismiss()` without `status` defaults to `SmartStatus.smart`, closing the highest-priority overlay first:
+
+1. Dismiss active **Loading** if open;
+2. Otherwise dismiss newest **Notify** if open;
+3. Otherwise dismiss top-most non-`permanent` **Custom** or **Attach** dialog.
+
+Pass an explicit `SmartStatus` to target a specific layer:
+
+| `SmartStatus` | Behavior |
+| --- | --- |
+| `SmartStatus.smart` | Default: `loading` -> `notify` -> top `custom`/`attach` |
+| `SmartStatus.custom` / `allCustom` | Dismiss top or all Custom dialogs |
+| `SmartStatus.attach` / `allAttach` | Dismiss top or all Attach popovers |
+| `SmartStatus.dialog` / `allDialog` | Dismiss top or all Custom + Attach overlays |
+| `SmartStatus.notify` / `allNotify` | Dismiss top or all Notify banners |
+| `SmartStatus.loading` | Dismiss Loading singleton |
+| `SmartStatus.toast` / `allToast` | Dismiss current or clear queued Toasts |
+
+### 2. Targeted Stacks via `tag`
+
+Assign `tag` to stacked dialogs to dismiss any middle layer without closing newer ones above it (`SmartDialog.dismiss({ tag: 'drawer' })`) or inspect state (`SmartDialog.checkExist({ tag })`).
+
+### 3. `keepSingle` Reuse vs Stacking
+
+- `keepSingle: false` (default): pushes a new overlay instance every call.
+- `keepSingle: true`: reuses the existing `keepSingle` instance and updates its content in place without recreating backdrops.
+
+### 4. `permanent` Protection Lock
+
+When `permanent: true`, standard `dismiss()`, mask taps, and Escape presses cannot close the dialog unless explicitly dismissed via `{ tag }` or `{ force: true }`.
+
+import { ConceptsLayerCard } from '../../components/InteractiveDemos';
+
+<ConceptsLayerCard />
+
+### 5. Async Promise Resolution (`awaitOverType`)
+
+Every `show*` call returns `Promise<T | undefined>`. By default (`SmartAwaitOverType.dialogDismiss`), it resolves only once the dialog completes its exit animation and returns the `dismiss(result)` payload. You may also configure `SmartAwaitOverType.dialogAppear` or `SmartAwaitOverType.none`.

@@ -1,0 +1,80 @@
+# Custom Dialogs & Native Top Layer Modals
+
+`SmartDialog.show<T>(options)` powers modals, edge drawers, bottom sheets, floating toolbars, and native Top Layer dialogs.
+
+import {
+  CustomDialogPlayground,
+  CustomPenetrateDemo,
+  ParamRefreshDemo,
+} from '../../components/InteractiveDemos';
+import { ParamTable } from '../../components/ParamTable';
+
+<CustomDialogPlayground />
+
+---
+
+## 1. Alignments & Animations
+
+Supports all 9 `Alignment` presets plus custom `new Alignment(x, y)` coordinates in `[-1, 1]`:
+
+- Top / bottom sheets: `Alignment.topCenter`, `Alignment.bottomCenter`
+- Side drawers: `Alignment.centerLeft`, `Alignment.centerRight`
+- Corner panels: `topLeft`, `topRight`, `bottomLeft`, `bottomRight`
+
+Built-in `SmartAnimationType` options adapt smoothly to alignment (`centerScale_otherSlide`, `centerFade_otherSlide`, `scale`, `fade`), or supply `animationBuilder` for custom Web Animations API motion.
+
+---
+
+## 2. Pointer Penetrate & Mask Triggers (`usePenetrate` & `maskTriggerType`)
+
+- **`usePenetrate: true`**: Transparent backdrop lets clicks and scrolling pass through to underlying UI.
+- **`ignoreArea`**: Defines a click-through rectangle inside an otherwise blocking backdrop.
+- **`config.custom.maskTriggerType`**: Fires mask dismiss on `up` (default), `down`, or `move`.
+
+<CustomPenetrateDemo />
+
+---
+
+## 3. Native `<dialog>.showModal()` Top Layer (`useSystem`)
+
+Set `useSystem: true` to promote the overlay into the browser Top Layer:
+1. Bypasses every parent `overflow: hidden` or high `z-index` trap;
+2. Inherits built-in keyboard Tab trapping and focus restoration on close;
+3. Integrates natively with `Esc` and `backType`.
+
+```ts
+const submitted = await SmartDialog.show<{ email: string }>({
+  useSystem: true,
+  ariaLabel: 'Newsletter Settings',
+  builder: ({ dismiss }) => subscriptionFormElement,
+});
+```
+
+---
+
+## 4. In-Place Updates with `SmartDialogController`
+
+Pass a `SmartDialogController` and invoke `controller.refresh()` to re-run `builder` without closing or tearing down animations:
+
+<ParamRefreshDemo />
+
+---
+
+## Options Reference
+
+<ParamTable
+  rows={[
+    { name: 'builder', type: '({ dismiss }) => SmartContent', descriptionZh: '必填。', descriptionEn: 'Required builder returning DOM node, Fragment, JSX, or VNode.' },
+    { name: 'alignment', type: 'Alignment', defaultValue: 'Alignment.center', descriptionZh: '位置。', descriptionEn: '9 presets or custom Alignment(x, y) in [-1, 1].' },
+    { name: 'animationType', type: 'SmartAnimationType', defaultValue: 'centerScale_otherSlide', descriptionZh: '动画。', descriptionEn: 'Built-in enter/exit transition mode.' },
+    { name: 'clickMaskDismiss', type: 'boolean', defaultValue: 'true', descriptionZh: '遮罩关闭。', descriptionEn: 'Dismiss when clicking backdrop mask.' },
+    { name: 'usePenetrate', type: 'boolean', defaultValue: 'false', descriptionZh: '事件穿透。', descriptionEn: 'Allow pointer events to pass through the backdrop.' },
+    { name: 'useSystem', type: 'boolean', defaultValue: 'false', descriptionZh: '原生顶层。', descriptionEn: 'Render inside native <dialog>.showModal() Top Layer.' },
+    { name: 'keepSingle', type: 'boolean', defaultValue: 'false', descriptionZh: '单实例复用。', descriptionEn: 'Reuse active keepSingle instance instead of stacking.' },
+    { name: 'permanent', type: 'boolean', defaultValue: 'false', descriptionZh: '常驻锁。', descriptionEn: 'Lock modal against regular dismiss() unless tag or force: true.' },
+    { name: 'tag', type: 'string', descriptionZh: '标识。', descriptionEn: 'Unique tag for targeted dismiss and checkExist().' },
+    { name: 'displayTime', type: 'SmartDuration | null', descriptionZh: '自动关闭。', descriptionEn: 'Auto-dismiss timeout duration.' },
+    { name: 'trapFocus', type: 'boolean', defaultValue: 'true', descriptionZh: '焦点捕获。', descriptionEn: 'Trap Tab navigation inside modal when active.' },
+    { name: 'lockScroll', type: 'boolean', defaultValue: 'true', descriptionZh: '锁定滚动。', descriptionEn: 'Lock background scroll while visible.' },
+  ]}
+/>

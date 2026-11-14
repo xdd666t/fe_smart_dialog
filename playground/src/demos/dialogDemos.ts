@@ -549,15 +549,18 @@ async function singleVsMultiple(keepSingle: boolean, alignment: Alignment) {
     label: 'dialogStack',
     description:
       '参考 flutter_use CustomDialogStack：依次弹出 A/B/C/D 四周栈弹窗，并由中心控制台按 tag 精准拆除任意一层。',
-    code: `import { Alignment, SmartDialog } from 'fe-smart-dialog';
+    code: `import { Alignment, SmartDialog, html } from 'fe-smart-dialog';
 
-await SmartDialog.show({ tag: 'A', alignment: Alignment.centerLeft, builder: ... });
-await SmartDialog.show({ tag: 'B', alignment: Alignment.topCenter, builder: ... });
-await SmartDialog.show({ tag: 'C', alignment: Alignment.centerRight, builder: ... });
-await SmartDialog.show({ tag: 'D', alignment: Alignment.bottomCenter, builder: ... });
+const makeEdgeCard = (tag: string) =>
+  html\`<div style="padding:16px;background:#1e293b;color:#fff;">dialog \${tag}</div>\`;
+
+await SmartDialog.show({ tag: 'A', alignment: Alignment.centerLeft, builder: () => makeEdgeCard('A') });
+await SmartDialog.show({ tag: 'B', alignment: Alignment.topCenter, builder: () => makeEdgeCard('B') });
+await SmartDialog.show({ tag: 'C', alignment: Alignment.centerRight, builder: () => makeEdgeCard('C') });
+await SmartDialog.show({ tag: 'D', alignment: Alignment.bottomCenter, builder: () => makeEdgeCard('D') });
 
 // 在任意时刻精准关闭指定层
-SmartDialog.dismiss({ tag: 'B' });`,
+await SmartDialog.dismiss({ tag: 'B' });`,
     mount(stage, ctx) {
       let cancelled = false;
       stage.innerHTML = `
