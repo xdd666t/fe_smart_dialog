@@ -18,9 +18,17 @@
   ],
   "license": "MIT",
   "author": "xdd666t",
+  "homepage": "https://github.com/xdd666t/fe_smart_dialog#readme",
+  "bugs": {
+    "url": "https://github.com/xdd666t/fe_smart_dialog/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/xdd666t/fe_smart_dialog.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "type": "module",
   "sideEffects": [

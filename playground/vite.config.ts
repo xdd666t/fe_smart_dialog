@@ -33,6 +33,7 @@ const rawSmartDialogCssPlugin = {
 };
 
 export default defineConfig({
+  base: process.env.VITE_BASE ?? '/',
   root: __dirname,
   plugins: [rawSmartDialogCssPlugin, react(), vue()],
   resolve: {
