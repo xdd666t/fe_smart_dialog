@@ -140,7 +140,13 @@ function ReactPlaygroundInner() {
 }
 
 export function mountReactDemo(container: HTMLElement): () => void {
-  const root = createRoot(container);
+  // Isolate React's sub-root in its own host node and defer unmount to a microtask
+  // so cleaning up inside the outer React playground's effect never collides with commit/DOM clears.
+  const host = document.createElement('div');
+  host.style.width = '100%';
+  container.appendChild(host);
+
+  const root = createRoot(host);
   root.render(
     <ReactThemeContext.Provider value="react-ocean">
       <SmartDialogProvider>
@@ -150,6 +156,9 @@ export function mountReactDemo(container: HTMLElement): () => void {
   );
 
   return () => {
-    root.unmount();
+    host.remove();
+    queueMicrotask(() => {
+      root.unmount();
+    });
   };
 }

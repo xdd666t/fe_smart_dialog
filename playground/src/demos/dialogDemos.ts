@@ -14,6 +14,7 @@ import {
   ALIGNMENT_BY_KEY,
   ANIMATION_TYPE_BY_KEY,
 } from '../utils/enumMaps';
+import { mountAlignMatrix } from '../utils/alignMatrix';
 
 function randomHslColor(): string {
   const hue = Math.floor(Math.random() * 360);
@@ -183,6 +184,7 @@ async function showLocationSequence() {
         <div class="pg-card">
           <h4>单点定位 & 动画组合测试</h4>
           <p>选择任意 9 方位与内置动画，验证定位精准度。</p>
+          <div data-role="align-matrix"></div>
           <div class="pg-actions" style="margin-bottom: 10px;">
             <select class="pg-select" data-testid="custom-alignment-select">
               <option value="center">center</option>
@@ -220,6 +222,11 @@ async function showLocationSequence() {
       const showBtn = stage.querySelector(
         '[data-testid="btn-show-custom"]',
       ) as HTMLButtonElement;
+
+      mountAlignMatrix(
+        stage.querySelector<HTMLElement>('[data-role="align-matrix"]'),
+        alignSel,
+      );
 
       const showBand = (
         alignment: SmartAlignment,

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
@@ -35,7 +36,7 @@ const rawSmartDialogCssPlugin = {
 export default defineConfig({
   base: process.env.VITE_BASE ?? '/',
   root: __dirname,
-  plugins: [rawSmartDialogCssPlugin, react(), vue()],
+  plugins: [tailwindcss(), rawSmartDialogCssPlugin, react(), vue()],
   resolve: {
     alias: {
       'fe-smart-dialog/react': resolve(ROOT_DIR, 'src/react/index.ts'),

@@ -15,6 +15,7 @@ import {
   ATTACH_ALIGNMENT_BY_KEY,
   PRESET_ALIGNMENT_ENTRIES,
 } from '../utils/enumMaps';
+import { mountAlignMatrix } from '../utils/alignMatrix';
 
 function randomHslColor(): string {
   const hue = Math.floor(Math.random() * 360);
@@ -45,6 +46,7 @@ SmartDialog.showAttach({
       stage.innerHTML = `
         <div class="pg-card">
           <h4>9 方位 &amp; AlignmentType 快捷触发</h4>
+          <div data-role="align-matrix"></div>
           <div class="pg-actions" style="margin-bottom: 10px;">
             <select class="pg-select" data-testid="attach-alignment-select">
               <option value="bottomCenter">bottomCenter</option>
@@ -93,6 +95,11 @@ SmartDialog.showAttach({
       const openGridBtn = stage.querySelector(
         '[data-testid="btn-attach-modal-grid"]',
       ) as HTMLButtonElement;
+
+      mountAlignMatrix(
+        stage.querySelector<HTMLElement>('[data-role="align-matrix"]'),
+        alignSel,
+      );
 
       anchorBtn.onclick = () => {
         SmartDialog.config.attach.attachAlignmentType =
