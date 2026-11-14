@@ -1,0 +1,103 @@
+{
+  "name": "fe-smart-dialog",
+  "version": "1.0.0",
+  "description": "An elegant, zero-dependency frontend dialog solution (Custom, Attach, Notify, Loading, Toast) inspired by flutter_smart_dialog, with first-class Vanilla TS, React, and Vue 3 support.",
+  "keywords": [
+    "dialog",
+    "modal",
+    "toast",
+    "loading",
+    "notify",
+    "popover",
+    "tooltip",
+    "spotlight",
+    "smart-dialog",
+    "react",
+    "vue",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "xdd666t",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xdd666t/fe_smart_dialog.git"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css",
+    "src/styles/**"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "require": "./dist/react/index.cjs"
+    },
+    "./vue": {
+      "types": "./dist/vue/index.d.ts",
+      "import": "./dist/vue/index.js",
+      "require": "./dist/vue/index.cjs"
+    },
+    "./style.css": "./dist/style.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup && npm run build:css",
+    "build:css": "node scripts/copy-css.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test": "npm run typecheck && npm run test:unit && npm run build && npm run test:e2e",
+    "dev:playground": "vite --config playground/vite.config.ts",
+    "build:playground": "vite build --config playground/vite.config.ts",
+    "prepublishOnly": "npm run typecheck && npm run test:unit && npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "vue": ">=3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.0",
+    "@testing-library/react": "^16.2.0",
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.0",
+    "vitest": "^3.0.8",
+    "vue": "^3.5.13"
+  }
+}
