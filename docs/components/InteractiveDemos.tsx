@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useLang } from '@rspress/core/runtime';
 import {
   Alignment,
@@ -47,7 +48,7 @@ const ANIMATION_MAP: Record<string, SmartAnimationType> = {
 };
 
 const cardStyle =
-  'background:var(--fsd-bg,#fff);color:var(--fsd-text,#0f172a);border:1px solid var(--fsd-border,rgba(15,23,42,.12));border-radius:14px;padding:18px 20px;box-shadow:var(--fsd-shadow,0 14px 36px rgba(15,23,42,.16));min-width:260px;max-width:360px;';
+  'background:var(--fsd-bg,var(--rp-c-bg,#fff));color:var(--fsd-text,var(--rp-c-text-1,#0f172a));border:1px solid var(--fsd-border,var(--rp-c-divider-light,rgba(15,23,42,.12)));border-radius:14px;padding:18px 20px;box-shadow:var(--fsd-shadow,0 14px 36px rgba(15,23,42,.16));min-width:260px;max-width:360px;';
 
 export function HomeLiveDeck() {
   const lang = useLang();
@@ -215,7 +216,13 @@ export function HomeLiveDeck() {
         <button
           type="button"
           className="fsd-btn"
-          onClick={() => void SmartDialog.dismiss({ status: SmartStatus.allDialog, force: true })}
+          onClick={() => {
+            void SmartDialog.dismiss({ status: SmartStatus.allDialog, force: true });
+            void SmartDialog.dismiss({ status: SmartStatus.allNotify });
+            void SmartDialog.dismiss({ status: SmartStatus.loading });
+            void SmartDialog.dismiss({ status: SmartStatus.allToast });
+            setStatusMsg(isEn ? 'All 5 layers dismissed' : '已强制清空全部 5 层弹窗');
+          }}
         >
           {isEn ? 'Force Dismiss All' : '强制清空全部'}
         </button>
@@ -353,43 +360,48 @@ export function FrameworkBridgeCard() {
     const Child = defineComponent({
       setup() {
         const count = vueRef(1);
+        const ModalBody = defineComponent({
+          props: {
+            onClose: { type: Function, required: true },
+          },
+          setup(props) {
+            return () =>
+              h('div', { style: cardStyle }, [
+                h('h4', { style: 'margin:0 0 8px;font-size:15px;' }, 'Vue 3 Teleport Modal'),
+                h(
+                  'p',
+                  { style: 'margin:0 0 12px;font-size:13px;opacity:.85;' },
+                  `Reactive count inside Vue VNode: ${count.value}`,
+                ),
+                h('div', { style: 'display:flex;gap:8px;justify-content:flex-end;' }, [
+                  h(
+                    'button',
+                    {
+                      class: 'fsd-btn',
+                      onClick: () => {
+                        count.value += 1;
+                      },
+                    },
+                    `+1 (${count.value})`,
+                  ),
+                  h(
+                    'button',
+                    {
+                      class: 'fsd-btn fsd-btn--primary',
+                      onClick: () => (props.onClose as () => void)(),
+                    },
+                    'Close',
+                  ),
+                ]),
+              ]);
+          },
+        });
         vueTriggerRef.current = () => {
           void VueSmartDialog.show({
             builder: ({ dismiss }) =>
-              h(
-                'div',
-                {
-                  style: cardStyle,
-                },
-                [
-                  h('h4', { style: 'margin:0 0 8px;font-size:15px;' }, 'Vue 3 Teleport Modal'),
-                  h(
-                    'p',
-                    { style: 'margin:0 0 12px;font-size:13px;opacity:.85;' },
-                    `Reactive count inside Vue VNode: ${count.value}`,
-                  ),
-                  h('div', { style: 'display:flex;gap:8px;justify-content:flex-end;' }, [
-                    h(
-                      'button',
-                      {
-                        class: 'fsd-btn',
-                        onClick: () => {
-                          count.value += 1;
-                        },
-                      },
-                      `+1 (${count.value})`,
-                    ),
-                    h(
-                      'button',
-                      {
-                        class: 'fsd-btn fsd-btn--primary',
-                        onClick: () => void dismiss(),
-                      },
-                      'Close',
-                    ),
-                  ]),
-                ],
-              ),
+              h(ModalBody, {
+                onClose: () => void dismiss(),
+              }),
           });
         };
         return () => h(VueSmartDialogProvider);
@@ -425,9 +437,9 @@ export function FrameworkBridgeCard() {
               builder: ({ dismiss }) => (
                 <div
                   style={{
-                    background: 'var(--fsd-bg, #fff)',
-                    color: 'var(--fsd-text, #0f172a)',
-                    border: '1px solid var(--fsd-border, rgba(15,23,42,.12))',
+                    background: 'var(--fsd-bg, var(--rp-c-bg, #fff))',
+                    color: 'var(--fsd-text, var(--rp-c-text-1, #0f172a))',
+                    border: '1px solid var(--fsd-border, var(--rp-c-divider-light, rgba(15,23,42,.12)))',
                     borderRadius: 14,
                     padding: '18px 20px',
                     boxShadow: 'var(--fsd-shadow, 0 14px 36px rgba(15,23,42,.16))',
@@ -1171,6 +1183,15 @@ SmartDialog.showToast({
 export function LifecycleBindCard() {
   const [anchorVisible, setAnchorVisible] = useState(true);
   const boundAnchorRef = useRef<HTMLDivElement | null>(null);
+  const unmountTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (unmountTimerRef.current !== null) {
+        window.clearTimeout(unmountTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <LiveDemoCard
@@ -1233,14 +1254,22 @@ export function LifecycleBindCard() {
           labelEn: 'Open & Unmount Host in 1.5s',
           variant: 'primary',
           onRun: (ctx) => {
+            if (unmountTimerRef.current !== null) {
+              window.clearTimeout(unmountTimerRef.current);
+              unmountTimerRef.current = null;
+            }
             if (!anchorVisible || !boundAnchorRef.current) {
-              setAnchorVisible(true);
+              flushSync(() => setAnchorVisible(true));
+            }
+            const target = boundAnchorRef.current;
+            if (!target) {
               return;
             }
+            target.scrollIntoView({ block: 'nearest', behavior: 'instant' });
             const backTypeKey = String(ctx.knobs.backType) as keyof typeof SmartBackType;
             ctx.log(`Opened with bindWidget + backType=${backTypeKey}`);
             void SmartDialog.show({
-              bindWidget: boundAnchorRef.current,
+              bindWidget: target,
               alignment: Alignment.topCenter,
               usePenetrate: true,
               clickMaskDismiss: false,
@@ -1256,7 +1285,8 @@ export function LifecycleBindCard() {
                   </div>
                 `,
             });
-            setTimeout(() => {
+            unmountTimerRef.current = window.setTimeout(() => {
+              unmountTimerRef.current = null;
               setAnchorVisible(false);
               ctx.log('Host DOM removed -> MutationObserver auto-dismissed dialog!');
             }, 1500);
@@ -1320,13 +1350,13 @@ export function ThemeTokenCard() {
             if (preset === 'violet') {
               rootStyle.setProperty('--fsd-bg', '#1e1b4b');
               rootStyle.setProperty('--fsd-text', '#eef2ff');
-              rootStyle.setProperty('--fsd-border', '1px solid rgba(165,180,252,0.35)');
+              rootStyle.setProperty('--fsd-border', 'rgba(165,180,252,0.35)');
               rootStyle.setProperty('--fsd-notify-radius', '18px');
               rootStyle.setProperty('--fsd-success', '#a855f7');
             } else if (preset === 'amber') {
               rootStyle.setProperty('--fsd-bg', '#fffbeb');
               rootStyle.setProperty('--fsd-text', '#78350f');
-              rootStyle.setProperty('--fsd-border', '1px solid #fcd34d');
+              rootStyle.setProperty('--fsd-border', '#fcd34d');
               rootStyle.setProperty('--fsd-notify-radius', '8px');
               rootStyle.setProperty('--fsd-success', '#d97706');
             } else {
@@ -1348,7 +1378,7 @@ export function ThemeTokenCard() {
         vanilla: `:root {
   --fsd-bg: #1e1b4b;
   --fsd-text: #eef2ff;
-  --fsd-border: 1px solid rgba(165, 180, 252, 0.35);
+  --fsd-border: rgba(165, 180, 252, 0.35);
   --fsd-notify-radius: 18px;
   --fsd-success: #a855f7;
 }

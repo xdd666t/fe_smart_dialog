@@ -1,24 +1,24 @@
 .fsd-root {
-  --fsd-bg: rgba(18, 18, 22, 0.9);
-  --fsd-text: #ffffff;
-  --fsd-border: rgba(255, 255, 255, 0.08);
-  --fsd-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
-  --fsd-radius: 12px;
-  --fsd-toast-radius: 20px;
-  --fsd-loading-radius: 15px;
-  --fsd-notify-radius: 10px;
-  --fsd-success: #22c55e;
-  --fsd-failure: #ef4444;
-  --fsd-warning: #f59e0b;
-  --fsd-alert: #3b82f6;
-  --fsd-error: #dc2626;
-  --fsd-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --_fsd-bg: rgba(18, 18, 22, 0.9);
+  --_fsd-text: #ffffff;
+  --_fsd-border: rgba(255, 255, 255, 0.08);
+  --_fsd-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --_fsd-radius: 12px;
+  --_fsd-toast-radius: 20px;
+  --_fsd-loading-radius: 15px;
+  --_fsd-notify-radius: 10px;
+  --_fsd-success: #22c55e;
+  --_fsd-failure: #ef4444;
+  --_fsd-warning: #f59e0b;
+  --_fsd-alert: #3b82f6;
+  --_fsd-error: #dc2626;
+  --_fsd-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
 
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  font-family: var(--fsd-font);
+  font-family: var(--fsd-font, var(--_fsd-font));
   box-sizing: border-box;
 }
 
@@ -29,21 +29,21 @@
 }
 
 .fsd-root[data-fsd-theme="dark"] {
-  --fsd-bg: rgba(72, 72, 78, 0.94);
-  --fsd-text: #f8fafc;
-  --fsd-border: rgba(255, 255, 255, 0.14);
+  --_fsd-bg: rgba(72, 72, 78, 0.94);
+  --_fsd-text: #f8fafc;
+  --_fsd-border: rgba(255, 255, 255, 0.14);
 }
 
 .fsd-root[data-fsd-theme="light"] {
-  --fsd-bg: rgba(18, 18, 22, 0.9);
-  --fsd-text: #ffffff;
+  --_fsd-bg: rgba(18, 18, 22, 0.9);
+  --_fsd-text: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
   .fsd-root[data-fsd-theme="auto"] {
-    --fsd-bg: rgba(72, 72, 78, 0.94);
-    --fsd-text: #f8fafc;
-    --fsd-border: rgba(255, 255, 255, 0.14);
+    --_fsd-bg: rgba(72, 72, 78, 0.94);
+    --_fsd-text: #f8fafc;
+    --_fsd-border: rgba(255, 255, 255, 0.14);
   }
 }
 
@@ -139,7 +139,7 @@
   background: transparent;
   overflow: hidden;
   pointer-events: none;
-  font-family: var(--fsd-font);
+  font-family: var(--fsd-font, var(--_fsd-font));
 }
 
 .fsd-native-dialog::backdrop {
@@ -154,11 +154,11 @@
 .fsd-toast {
   margin: 50px 30px;
   padding: 10px 24px;
-  border-radius: var(--fsd-toast-radius);
-  background: var(--fsd-bg);
-  color: var(--fsd-text);
-  border: 1px solid var(--fsd-border);
-  box-shadow: var(--fsd-shadow);
+  border-radius: var(--fsd-toast-radius, var(--_fsd-toast-radius));
+  background: var(--fsd-bg, var(--_fsd-bg));
+  color: var(--fsd-text, var(--_fsd-text));
+  border: 1px solid var(--fsd-border, var(--_fsd-border));
+  box-shadow: var(--fsd-shadow, var(--_fsd-shadow));
   font-size: 14px;
   line-height: 1.45;
   text-align: center;
@@ -174,11 +174,11 @@
   gap: 14px;
   min-width: 112px;
   padding: 20px 30px;
-  border-radius: var(--fsd-loading-radius);
-  background: var(--fsd-bg);
-  color: var(--fsd-text);
-  border: 1px solid var(--fsd-border);
-  box-shadow: var(--fsd-shadow);
+  border-radius: var(--fsd-loading-radius, var(--_fsd-loading-radius));
+  background: var(--fsd-bg, var(--_fsd-bg));
+  color: var(--fsd-text, var(--_fsd-text));
+  border: 1px solid var(--fsd-border, var(--_fsd-border));
+  box-shadow: var(--fsd-shadow, var(--_fsd-shadow));
   backdrop-filter: blur(8px);
 }
 
@@ -203,11 +203,11 @@
   min-width: 120px;
   max-width: min(360px, 85vw);
   padding: 12px 22px;
-  border-radius: var(--fsd-notify-radius);
-  background: var(--fsd-bg);
-  color: var(--fsd-text);
-  border: 1px solid var(--fsd-border);
-  box-shadow: var(--fsd-shadow);
+  border-radius: var(--fsd-notify-radius, var(--_fsd-notify-radius));
+  background: var(--fsd-bg, var(--_fsd-bg));
+  color: var(--fsd-text, var(--_fsd-text));
+  border: 1px solid var(--fsd-border, var(--_fsd-border));
+  box-shadow: var(--fsd-shadow, var(--_fsd-shadow));
   backdrop-filter: blur(8px);
 }
 
@@ -218,23 +218,23 @@
 }
 
 .fsd-notify--success .fsd-notify-icon {
-  color: var(--fsd-success);
+  color: var(--fsd-success, var(--_fsd-success));
 }
 
 .fsd-notify--failure .fsd-notify-icon {
-  color: var(--fsd-failure);
+  color: var(--fsd-failure, var(--_fsd-failure));
 }
 
 .fsd-notify--warning .fsd-notify-icon {
-  color: var(--fsd-warning);
+  color: var(--fsd-warning, var(--_fsd-warning));
 }
 
 .fsd-notify--alert .fsd-notify-icon {
-  color: var(--fsd-alert);
+  color: var(--fsd-alert, var(--_fsd-alert));
 }
 
 .fsd-notify--error .fsd-notify-icon {
-  color: var(--fsd-error);
+  color: var(--fsd-error, var(--_fsd-error));
 }
 
 .fsd-notify-text {
@@ -247,9 +247,9 @@
 .fsd-text-node {
   display: inline-block;
   padding: 10px 18px;
-  border-radius: var(--fsd-radius);
-  background: var(--fsd-bg);
-  color: var(--fsd-text);
+  border-radius: var(--fsd-radius, var(--_fsd-radius));
+  background: var(--fsd-bg, var(--_fsd-bg));
+  color: var(--fsd-text, var(--_fsd-text));
   font-size: 14px;
 }
 

@@ -224,6 +224,24 @@ export default defineConfig({
       },
     },
     tools: {
+      bundlerChain: (chain, { CHAIN_ID }) => {
+        if (chain.plugins.has(CHAIN_ID.PLUGIN.REACT_FAST_REFRESH)) {
+          chain.plugin(CHAIN_ID.PLUGIN.REACT_FAST_REFRESH).tap((options) => {
+            const opts = (options[0] ??= {}) as Record<string, unknown>;
+            const existingExclude = opts.exclude
+              ? Array.isArray(opts.exclude)
+                ? opts.exclude
+                : [opts.exclude]
+              : [];
+            opts.exclude = [
+              ...existingExclude,
+              /[\\/]react-refresh[\\/]/,
+              /[\\/]node_modules[\\/](?!@rspress[\\/])/,
+            ];
+            return options;
+          });
+        }
+      },
       rspack: (config, { rspack }) => {
         config.plugins ??= [];
         config.plugins.push(
@@ -232,18 +250,11 @@ export default defineConfig({
             (resource) => {
               const issuer = resource.contextInfo?.issuer?.replace(/\\/g, '/') ?? '';
               if (issuer.includes('src/styles/inject')) {
-                resource.request = `${CSS_ENTRY}?fsd-raw`;
+                resource.request = `${CSS_ENTRY}?raw`;
               }
             },
           ),
         );
-        config.module ??= {};
-        config.module.rules ??= [];
-        config.module.rules.unshift({
-          test: /src[\\/]styles[\\/]smart-dialog\.css$/,
-          resourceQuery: /fsd-raw/,
-          type: 'asset/source',
-        });
       },
     },
   },

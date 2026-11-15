@@ -184,16 +184,50 @@ test.describe('Combined Docs Site, Live Demos, TypeDoc API & Cross-Navigation', 
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(err.message));
 
+    async function expectOverlayVisibleInViewport(locator: ReturnType<typeof page.locator>) {
+      await expect(locator).toBeVisible();
+      await expect(async () => {
+        const metrics = await locator.evaluate((el) => {
+          const styleEl = document.getElementById('fe-smart-dialog-styles');
+          const rootEl = el.closest('.fsd-root');
+          const rootPos = rootEl ? getComputedStyle(rootEl).position : null;
+          const rect = el.getBoundingClientRect();
+          return {
+            hasCss: Boolean(styleEl && styleEl.textContent?.includes('.fsd-root')),
+            rootPos,
+            rect: {
+              left: rect.left,
+              top: rect.top,
+              right: rect.right,
+              bottom: rect.bottom,
+              width: rect.width,
+              height: rect.height,
+            },
+            vw: window.innerWidth,
+            vh: window.innerHeight,
+          };
+        });
+        expect(metrics.hasCss).toBe(true);
+        expect(metrics.rootPos).toBe('fixed');
+        expect(metrics.rect.width).toBeGreaterThan(20);
+        expect(metrics.rect.height).toBeGreaterThan(20);
+        expect(metrics.rect.left).toBeGreaterThanOrEqual(-1);
+        expect(metrics.rect.top).toBeGreaterThanOrEqual(-1);
+        expect(metrics.rect.right).toBeLessThanOrEqual(metrics.vw + 1);
+        expect(metrics.rect.bottom).toBeLessThanOrEqual(metrics.vh + 1);
+      }).toPass({ timeout: 3000 });
+    }
+
     // 1. Docs Home & Live 5-Layer Deck
     await page.goto(siteUrl);
     await expect(page.getByTestId('home-live-deck')).toBeVisible();
     await page.getByTestId('home-deck-custom').click();
     const homeModal = page.getByRole('dialog').last();
-    await expect(homeModal).toBeVisible();
+    await expectOverlayVisibleInViewport(homeModal);
     await homeModal.locator('[data-action="ok"]').click();
     await expect(page.getByTestId('home-live-deck')).toContainText('Custom resolved: confirmed');
 
-    // 2. Feature Page: Custom Dialog Interactive Playground with parameter knobs
+    // 2. Feature Page: Custom Dialog Interactive Playground with parameter knobs + useSystem
     await page.goto(`${siteUrl}features/custom-dialog`);
     const customCard = page.getByTestId('docs-demo-custom-dialog');
     await expect(customCard).toBeVisible();
@@ -201,23 +235,40 @@ test.describe('Combined Docs Site, Live Demos, TypeDoc API & Cross-Navigation', 
     await expect(customCard).toContainText('Alignment.topRight');
     await page.getByTestId('demo-action-custom-dialog-launch').click();
     const customModal = page.getByRole('dialog').last();
-    await expect(customModal).toBeVisible();
+    await expectOverlayVisibleInViewport(customModal);
     await customModal.locator('[data-close]').click();
     await expect(customCard).toContainText('Resolved result: done');
 
-    // 3. Frameworks Guide: React Provider & JSX modal live trigger + Vue 3 VNode trigger
+    await customCard.locator('select').nth(2).selectOption('false');
+    await customCard.locator('select').nth(4).selectOption('true');
+    await expect(customCard).toContainText('clickMaskDismiss: false');
+    await expect(customCard).toContainText('useSystem: true');
+    await page.getByTestId('demo-action-custom-dialog-launch').click();
+    const nativeDialog = page.locator('dialog.fsd-native-dialog[open]').last();
+    await expectOverlayVisibleInViewport(nativeDialog);
+    await page.mouse.click(10, 10);
+    await expect(nativeDialog).toBeVisible();
+    await nativeDialog.locator('[data-close]').click();
+    await expect(nativeDialog).toHaveCount(0);
+    await expect(customCard).toContainText('Resolved result: done');
+
+    // 3. Frameworks Guide: React Provider & JSX modal live trigger + Vue 3 reactive VNode trigger
     await page.goto(`${siteUrl}guide/frameworks`);
     const fwCard = page.getByTestId('docs-demo-framework-bridge');
     await expect(fwCard).toBeVisible();
     await page.getByTestId('demo-action-framework-bridge-open-react').click();
     const reactModal = page.getByRole('dialog').last();
+    await expectOverlayVisibleInViewport(reactModal);
     await expect(reactModal).toContainText('React Portal Dialog');
     await reactModal.getByRole('button', { name: /关闭 React 弹窗|Close React Dialog/ }).click();
     await expect(reactModal).toHaveCount(0);
 
     await page.getByTestId('demo-action-framework-bridge-open-vue').click();
     const vueModal = page.getByRole('dialog').last();
+    await expectOverlayVisibleInViewport(vueModal);
     await expect(vueModal).toContainText('Vue 3 Teleport Modal');
+    await vueModal.getByRole('button', { name: /\+1/ }).click();
+    await expect(vueModal).toContainText('+1 (2)');
     await vueModal.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(vueModal).toHaveCount(0);
 
@@ -227,8 +278,33 @@ test.describe('Combined Docs Site, Live Demos, TypeDoc API & Cross-Navigation', 
     await expect(attachCard).toBeVisible();
     await page.getByTestId('demo-action-attach-popover-open-attach').click();
     const attachModal = page.getByRole('dialog').last();
+    await expectOverlayVisibleInViewport(attachModal);
     await expect(attachModal).toContainText('Attach (bottomCenter)');
     await attachModal.locator('[data-close]').click();
+
+    // 4b. Theme tokens override (violet preset -> CSS variables on :root take effect on notify)
+    await page.goto(`${siteUrl}guide/theming-styling`);
+    const themeCard = page.locator('[data-testid^="docs-demo-"]').first();
+    await expect(themeCard).toBeVisible();
+    await themeCard.locator('select').first().selectOption('violet');
+    await themeCard.locator('button.fsd-btn--primary').click();
+    const themedNotify = page.locator('.fsd-notify').last();
+    await expectOverlayVisibleInViewport(themedNotify);
+    const notifyStyles = await themedNotify.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { bg: style.backgroundColor, radius: style.borderRadius };
+    });
+    expect(notifyStyles.bg).toBe('rgb(30, 27, 75)');
+    expect(notifyStyles.radius).toBe('18px');
+
+    // 4c. Lifecycle bindWidget visible in viewport then auto-dismisses when host unmounts
+    await page.goto(`${siteUrl}guide/lifecycle-routing`);
+    const lifecycleCard = page.getByTestId('docs-demo-lifecycle-bind');
+    await expect(lifecycleCard).toBeVisible();
+    await page.getByTestId('demo-action-lifecycle-bind-bind-widget-test').click();
+    const bindModal = page.getByRole('dialog').last();
+    await expectOverlayVisibleInViewport(bindModal);
+    await expect(bindModal).toHaveCount(0, { timeout: 5000 });
 
     // 5. TypeDoc Generated API Reference
     await page.goto(`${siteUrl}api/classes/index.SmartDialog`);
