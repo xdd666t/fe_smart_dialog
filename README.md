@@ -4,7 +4,7 @@
 
 **优雅、零运行时依赖的前端全能弹窗解决方案**
 
-灵感源自 [`flutter_smart_dialog`](https://github.com/xdd666t/flutter_smart_dialog)，完整提供 **Custom**、**Attach**、**Notify**、**Loading**、**Toast** 五层独立弹窗体系，内置队列堆栈管理、SVG 聚光灯挖空引导、SPA 路由与 DOM 生命周期绑定、原生 `<dialog>` 顶层模态框支持，并为 **Vanilla TS/JS**、**React 18/19** 与 **Vue 3** 提供一等公民适配。
+参考 [`flutter_smart_dialog`](https://github.com/fluttercandies/flutter_smart_dialog)，完整提供 **Custom**、**Attach**、**Notify**、**Loading**、**Toast** 五层独立弹窗体系，内置队列堆栈管理、SVG 聚光灯挖空引导、SPA 路由与 DOM 生命周期绑定、原生 `<dialog>` 顶层模态框支持，并为 **Vanilla TS/JS**、**React 18/19** 与 **Vue 3** 提供一等公民适配。
 
 [![npm version](https://img.shields.io/npm/v/fe-smart-dialog.svg)](https://www.npmjs.com/package/fe-smart-dialog)
 [![CI](https://github.com/xdd666t/fe_smart_dialog/actions/workflows/ci.yml/badge.svg)](https://github.com/xdd666t/fe_smart_dialog/actions/workflows/ci.yml)
