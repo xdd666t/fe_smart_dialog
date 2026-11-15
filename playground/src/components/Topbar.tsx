@@ -5,7 +5,6 @@ import {
   Monitor,
   Moon,
   Search,
-  Sparkles,
   Sun,
   Trash2,
 } from 'lucide-react';
@@ -19,9 +18,7 @@ export type ThemeChoice = 'auto' | 'light' | 'dark';
 interface TopbarProps {
   demoCount: number;
   theme: ThemeChoice;
-  heroOpen: boolean;
   onThemeChange: (next: ThemeChoice) => void;
-  onToggleHero: () => void;
   onToggleSidebar: () => void;
   onOpenCommand: () => void;
   onDismissAll: () => void;
@@ -40,9 +37,7 @@ const THEME_OPTIONS: ReadonlyArray<{
 export function Topbar({
   demoCount,
   theme,
-  heroOpen,
   onThemeChange,
-  onToggleHero,
   onToggleSidebar,
   onOpenCommand,
   onDismissAll,
@@ -97,22 +92,6 @@ export function Topbar({
             ⌘K
           </kbd>
         </button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onToggleHero}
-          aria-pressed={heroOpen}
-          className={cn(
-            'hidden sm:inline-flex',
-            heroOpen &&
-              'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
-          )}
-        >
-          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Showcase</span>
-        </Button>
 
         <div
           className="inline-flex items-center rounded-lg border border-[var(--pg-border)] bg-[var(--pg-surface-subtle)] p-0.5"

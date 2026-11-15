@@ -114,12 +114,9 @@ test.describe('Workbench Usage Guides, Framework Snippets & Docs Links', () => {
 
     await page.goto('/');
 
-    // Topbar & Hero docs links exist with expected href targets
+    // Topbar & Demo docs links exist without an extra Hero Showcase banner above the workbench
+    await expect(page.getByTestId('hero-showcase')).toHaveCount(0);
     await expect(page.getByTestId('topbar-docs-link')).toBeVisible();
-    await expect(page.getByTestId('hero-docs-link')).toHaveAttribute(
-      'href',
-      /guide\/getting-started/,
-    );
     await expect(page.getByTestId('demo-docs-link')).toHaveAttribute(
       'href',
       /features\/custom-dialog/,

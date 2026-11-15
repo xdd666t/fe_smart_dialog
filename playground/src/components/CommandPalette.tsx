@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Monitor, Moon, Sparkles, Sun, Trash2 } from 'lucide-react';
+import { Monitor, Moon, Sun, Trash2 } from 'lucide-react';
 import type { DemoCategoryId, DemoEntry } from '../types/demo';
 import type { ThemeChoice } from './Topbar';
 import {
@@ -18,7 +18,6 @@ interface CommandPaletteProps {
   categoryLabels: Record<DemoCategoryId, string>;
   onSelectDemo: (demo: DemoEntry) => void;
   onThemeChange: (theme: ThemeChoice) => void;
-  onToggleHero: () => void;
   onDismissAll: () => void;
 }
 
@@ -29,7 +28,6 @@ export function CommandPalette({
   categoryLabels,
   onSelectDemo,
   onThemeChange,
-  onToggleHero,
   onDismissAll,
 }: CommandPaletteProps) {
   useEffect(() => {
@@ -57,17 +55,6 @@ export function CommandPalette({
         <CommandEmpty>No matching demo or action found.</CommandEmpty>
 
         <CommandGroup heading="Quick Actions">
-          <CommandItem
-            onSelect={() => {
-              onToggleHero();
-              onOpenChange(false);
-            }}
-          >
-            <span className="inline-flex items-center gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
-              <span>Toggle Hero Showcase</span>
-            </span>
-          </CommandItem>
           <CommandItem
             onSelect={() => {
               onDismissAll();

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import { SmartDialog, SmartStatus } from 'fe-smart-dialog';
 import { CodeInspectorPane } from './components/CodeInspectorPane';
@@ -7,7 +7,6 @@ import {
   DemoStagePane,
   type LayerStatusSnapshot,
 } from './components/DemoStagePane';
-import { HeroShowcase } from './components/HeroShowcase';
 import { SidebarTree } from './components/SidebarTree';
 import { Topbar, type ThemeChoice } from './components/Topbar';
 import { ATTACH_DEMOS } from './demos/attachDemos';
@@ -44,7 +43,7 @@ const ALL_DEMOS: DemoEntry[] = [
 
 const DIALOG_PARAM = 'dialogType';
 
-function resolveInitialDemo(): { demo: DemoEntry; hasDeepLink: boolean } {
+function resolveInitialDemo(): DemoEntry {
   const params = new URLSearchParams(window.location.search);
   const targetName = params.get(DIALOG_PARAM);
   if (targetName) {
@@ -54,10 +53,10 @@ function resolveInitialDemo(): { demo: DemoEntry; hasDeepLink: boolean } {
         d.id.toLowerCase() === targetName.toLowerCase(),
     );
     if (matched) {
-      return { demo: matched, hasDeepLink: true };
+      return matched;
     }
   }
-  return { demo: ALL_DEMOS[0]!, hasDeepLink: false };
+  return ALL_DEMOS[0]!;
 }
 
 function dismissAllOverlays(): Promise<void> {
@@ -76,23 +75,21 @@ function formatLogLine(msg: string): string {
 }
 
 export function App() {
-  const initial = useMemo(() => resolveInitialDemo(), []);
-  const workbenchRef = useRef<HTMLDivElement>(null);
+  const initialDemo = useMemo(() => resolveInitialDemo(), []);
 
   const [theme, setTheme] = useState<ThemeChoice>('auto');
   const [systemDark, setSystemDark] = useState<boolean>(() =>
     window.matchMedia('(prefers-color-scheme: dark)').matches,
   );
-  const [heroOpen, setHeroOpen] = useState<boolean>(!initial.hasDeepLink);
   const [cmdOpen, setCmdOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [activeDemo, setActiveDemo] = useState<DemoEntry>(initial.demo);
+  const [activeDemo, setActiveDemo] = useState<DemoEntry>(initialDemo);
   const [expandedCategories, setExpandedCategories] = useState<
     Set<DemoCategoryId>
-  >(() => new Set<DemoCategoryId>(['dialog', initial.demo.category]));
+  >(() => new Set<DemoCategoryId>(['dialog', initialDemo.category]));
   const [logs, setLogs] = useState<string[]>([
-    '[ready] 选择左侧菜单或点击上方 Quick-Try 卡片交互',
+    '[ready] 选择左侧菜单或右侧控制台交互',
   ]);
   const [status, setStatus] = useState<LayerStatusSnapshot>({
     custom: false,
@@ -201,35 +198,18 @@ export function App() {
     });
   }, []);
 
-  const jumpToWorkbench = useCallback(() => {
-    workbenchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
-
   return (
     <div className="flex min-h-screen flex-col bg-[var(--pg-bg)] text-[var(--pg-text)]">
       <Topbar
         demoCount={ALL_DEMOS.length}
         theme={theme}
-        heroOpen={heroOpen}
         onThemeChange={handleThemeChange}
-        onToggleHero={() => setHeroOpen((v) => !v)}
         onToggleSidebar={() => setMobileSidebarOpen((v) => !v)}
         onOpenCommand={() => setCmdOpen(true)}
         onDismissAll={handleDismissAll}
       />
 
-      {heroOpen && (
-        <HeroShowcase
-          isDark={isDark}
-          onLog={appendLog}
-          onJumpWorkbench={jumpToWorkbench}
-        />
-      )}
-
-      <main
-        ref={workbenchRef}
-        className="flex flex-1 min-h-0 flex-col bg-[var(--pg-bg)]"
-      >
+      <main className="flex flex-1 min-h-0 flex-col bg-[var(--pg-bg)]">
         {isDesktop ? (
           <div className="h-[calc(100vh-3.5rem)] min-h-[600px] w-full">
             <Group orientation="horizontal" className="h-full w-full">
@@ -298,12 +278,8 @@ export function App() {
         onOpenChange={setCmdOpen}
         demos={ALL_DEMOS}
         categoryLabels={CATEGORY_LABELS}
-        onSelectDemo={(demo) => {
-          handleSelectDemo(demo);
-          jumpToWorkbench();
-        }}
+        onSelectDemo={handleSelectDemo}
         onThemeChange={handleThemeChange}
-        onToggleHero={() => setHeroOpen((v) => !v)}
         onDismissAll={handleDismissAll}
       />
     </div>
