@@ -1,6 +1,6 @@
 {
   "name": "fe-smart-dialog",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An elegant, zero-dependency frontend dialog solution (Custom, Attach, Notify, Loading, Toast) inspired by flutter_smart_dialog, with first-class Vanilla TS, React, and Vue 3 support.",
   "keywords": [
     "dialog",

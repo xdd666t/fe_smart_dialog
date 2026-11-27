@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 - 2026-11-27
+
+### Fixes & Improvements
+- **Mask click throttle**: Changed repeated backdrop mask click dismissal from a 500ms leading-edge debounce to a **200ms leading-edge throttle** (`DebounceUtils`), so blocked clicks within the cooldown window no longer reset the timer.
+- **CSS token overrides**: Fixed scoped CSS token override precedence in `src/styles/smart-dialog.css`.
+- **Docs & Playground**: Added Rspress bilingual documentation site with TypeDoc API reference, redesigned the interactive playground workbench, and updated Chinese README.
+
 ## 1.0.0 - 2026-11-14
 
 ### Features
