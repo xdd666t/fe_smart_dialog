@@ -3,7 +3,8 @@ import type { DialogProxy } from './dialog-proxy';
 export type DebounceType = 'custom' | 'attach' | 'notify' | 'toast' | 'mask';
 
 /**
- * Leading-edge debounce utility matching Flutter SmartDialog's behavior.
+ * Leading-edge debounce utility matching Flutter SmartDialog's behavior,
+ * with leading-edge throttling (200ms) for repeated mask clicks.
  */
 export class DebounceUtils {
   private static _instance: DebounceUtils | null = null;
@@ -33,12 +34,21 @@ export class DebounceUtils {
         case 'toast':
           return config?.toast.debounceTime ?? 300;
         case 'mask':
-          return 500;
+          return 200;
       }
     })();
 
     const now = Date.now();
     const lastTime = this.timestamps.get(type);
+
+    if (type === 'mask') {
+      if (lastTime !== undefined && now - lastTime < limitTime) {
+        return true;
+      }
+      this.timestamps.set(type, now);
+      return false;
+    }
+
     this.timestamps.set(type, now);
 
     if (lastTime !== undefined) {

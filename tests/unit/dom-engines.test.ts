@@ -42,8 +42,8 @@ describe('Web DOM Engines (Mask, Highlight, BindWidget, VisualViewport, Styles)'
     expect(onMaskDown).toHaveBeenCalledTimes(1);
     expect(SmartDialog.checkExist()).toBe(false);
 
-    // Advance past mask debounce window (500ms)
-    await vi.advanceTimersByTimeAsync(550);
+    // Advance past mask throttle window (200ms)
+    await vi.advanceTimersByTimeAsync(200);
 
     // 2. MOVE trigger
     SmartDialog.config.custom.maskTriggerType = SmartMaskTriggerType.move;
@@ -63,7 +63,7 @@ describe('Web DOM Engines (Mask, Highlight, BindWidget, VisualViewport, Styles)'
     expect(onMaskMove).toHaveBeenCalledTimes(1);
     expect(SmartDialog.checkExist()).toBe(false);
 
-    await vi.advanceTimersByTimeAsync(550);
+    await vi.advanceTimersByTimeAsync(200);
 
     // 3. UP trigger
     SmartDialog.config.custom.maskTriggerType = SmartMaskTriggerType.up;
@@ -82,6 +82,58 @@ describe('Web DOM Engines (Mask, Highlight, BindWidget, VisualViewport, Styles)'
     await Promise.resolve();
     expect(onMaskUp).toHaveBeenCalledTimes(1);
     expect(SmartDialog.checkExist()).toBe(false);
+  });
+
+  it('throttles repeated mask dismiss clicks with a 200ms leading-edge window', async () => {
+    vi.useFakeTimers();
+    SmartDialog.config.custom.maskTriggerType = SmartMaskTriggerType.up;
+
+    const onMaskFirst = vi.fn();
+    const onMaskSecond = vi.fn();
+
+    void SmartDialog.show({
+      tag: 'mask-d1',
+      useAnimation: false,
+      clickMaskDismiss: true,
+      onMask: onMaskFirst,
+      builder: () => 'First Dialog',
+    });
+    void SmartDialog.show({
+      tag: 'mask-d2',
+      useAnimation: false,
+      clickMaskDismiss: true,
+      onMask: onMaskSecond,
+      builder: () => 'Second Dialog',
+    });
+
+    const masks = document.querySelectorAll<HTMLElement>('.fsd-mask');
+    const firstMask = masks[0]!;
+    const secondMask = masks[1]!;
+
+    // t = 0ms: first mask click dismisses top dialog immediately
+    secondMask.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    await Promise.resolve();
+    expect(onMaskSecond).toHaveBeenCalledTimes(1);
+    expect(SmartDialog.checkExist({ tag: 'mask-d2' })).toBe(false);
+    expect(SmartDialog.checkExist({ tag: 'mask-d1' })).toBe(true);
+
+    // t = 100ms & t = 199ms: blocked within 200ms window and do NOT reset the throttle timer
+    await vi.advanceTimersByTimeAsync(100);
+    firstMask.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    await Promise.resolve();
+    expect(SmartDialog.checkExist({ tag: 'mask-d1' })).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(99);
+    firstMask.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    await Promise.resolve();
+    expect(SmartDialog.checkExist({ tag: 'mask-d1' })).toBe(true);
+
+    // t = 200ms: only 1ms after the last blocked click, throttle window expires and dismisses
+    await vi.advanceTimersByTimeAsync(1);
+    firstMask.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    await Promise.resolve();
+    expect(onMaskFirst).toHaveBeenCalledTimes(3);
+    expect(SmartDialog.checkExist({ tag: 'mask-d1' })).toBe(false);
   });
 
   it('handles usePenetrate click-through and ignoreArea', async () => {
